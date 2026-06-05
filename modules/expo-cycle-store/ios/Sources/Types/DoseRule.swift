@@ -36,6 +36,12 @@ public struct DoseRule: Codable, Sendable, Identifiable, Equatable {
         sortOrder: Int = 0,
         notes: String? = nil
     ) {
+        precondition(amount > 0, "Dose amount must be positive")
+        if let start = startWeek, let end = endWeek {
+            precondition(end >= start, "End week must be on or after start week")
+        }
+        Self.validate(cadence)
+
         self.id = id
         self.compoundID = compoundID
         self.scheduleID = scheduleID
@@ -47,6 +53,45 @@ public struct DoseRule: Codable, Sendable, Identifiable, Equatable {
         self.endWeek = endWeek
         self.sortOrder = sortOrder
         self.notes = notes
+    }
+
+    private static func validate(_ cadence: Cadence) {
+        switch cadence {
+        case .daily, .asNeeded:
+            break
+        case .everyNDays(let n):
+            precondition(n > 0, "Day interval must be positive")
+        case .everyNHours(let n):
+            precondition(n > 0, "Hour interval must be positive")
+        case .cyclical(let daysOn, let daysOff):
+            precondition(daysOn > 0 && daysOff > 0, "Cycle days must be positive")
+        case .specificDays(let days):
+            precondition(!days.isEmpty, "Must specify at least one day")
+            precondition(days.allSatisfy { (0 ... 6).contains($0) }, "Days must be 0-6")
+        }
+    }
+}
+
+extension DoseRule.Cadence {
+    public static func everyNDays(_ n: Int) -> Self {
+        precondition(n > 0, "Day interval must be positive")
+        return .everyNDays(n)
+    }
+
+    public static func everyNHours(_ n: Int) -> Self {
+        precondition(n > 0, "Hour interval must be positive")
+        return .everyNHours(n)
+    }
+
+    public static func cyclical(daysOn: Int, daysOff: Int) -> Self {
+        precondition(daysOn > 0 && daysOff > 0, "Cycle days must be positive")
+        return .cyclical(daysOn: daysOn, daysOff: daysOff)
+    }
+
+    public static func specificDays(_ days: [Int]) -> Self {
+        precondition(!days.isEmpty, "Must specify at least one day")
+        precondition(days.allSatisfy { (0 ... 6).contains($0) }, "Days must be 0-6")
+        return .specificDays(days)
     }
 }
 
@@ -74,6 +119,10 @@ public struct Schedule: Codable, Sendable, Identifiable, Equatable {
         rules: [DoseRule] = [],
         status: ScheduleStatus = .draft
     ) {
+        if let end = endDate {
+            precondition(end >= startDate, "End date must be on or after start date")
+        }
+
         self.id = id
         self.name = name
         self.startDate = startDate

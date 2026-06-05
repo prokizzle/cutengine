@@ -29,6 +29,12 @@ public struct Compound: Codable, Sendable, Identifiable, Equatable {
         isUserCreated: Bool = true,
         preSeeded: Bool = false
     ) {
+        precondition(!name.isEmpty, "Compound name cannot be empty")
+        precondition(!defaultUnit.isEmpty, "Default unit cannot be empty")
+        if let halfLife = halfLifeHours {
+            precondition(halfLife > 0, "Half-life must be positive")
+        }
+
         self.id = id
         self.name = name
         self.halfLifeHours = halfLifeHours
