@@ -149,11 +149,11 @@ public actor NLCycleParser {
     private func stripMarkdownFences(_ response: String) -> String {
         var text = response.trimmingCharacters(in: .whitespacesAndNewlines)
         if text.lowercased().hasPrefix("```") {
-            if let firstNewline = text.firstIndex(of: "\n") {
-                text = String(text[text.index(after: firstNewline)...])
-            } else {
-                text = ""
+            text = String(text.dropFirst(3))
+            if text.lowercased().hasPrefix("json") {
+                text = String(text.dropFirst(4))
             }
+            text = text.trimmingCharacters(in: .whitespacesAndNewlines)
         }
         if text.lowercased().hasSuffix("```") {
             text = String(text.dropLast(3)).trimmingCharacters(in: .whitespacesAndNewlines)
