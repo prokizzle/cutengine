@@ -10,7 +10,9 @@ export async function fetchOfferings(): Promise<PurchasesPackage[]> {
   try {
     const offerings = await Purchases.getOfferings();
     const packages = offerings.current?.availablePackages ?? [];
-    offeringsCache = packages;
+    if (packages.length > 0) {
+      offeringsCache = packages;
+    }
     return packages;
   } catch (err) {
     console.error("[RevenueCat] fetchOfferings error:", err);
