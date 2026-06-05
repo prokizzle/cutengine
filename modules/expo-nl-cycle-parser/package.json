@@ -1,0 +1,13 @@
+{
+  "name": "expo-nl-cycle-parser",
+  "version": "0.1.0",
+  "description": "NL dosing schedule parser — FoundationModels on-device LLM with token-opaque prompting + deterministic fallback",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {},
+  "peerDependencies": {
+    "expo": "*",
+    "expo-modules-core": "*"
+  },
+  "private": true
+}
