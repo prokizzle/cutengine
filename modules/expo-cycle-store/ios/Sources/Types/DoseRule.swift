@@ -36,12 +36,12 @@ public struct DoseRule: Codable, Sendable, Identifiable, Equatable {
         sortOrder: Int = 0,
         notes: String? = nil
     ) {
-        precondition(amount > 0, "Dose amount must be positive")
-        if let start = startWeek, let end = endWeek {
-            precondition(end >= start, "End week must be on or after start week")
-        }
-        Self.validate(cadence)
-
+        try! Self.validate(
+            amount: amount,
+            cadence: cadence,
+            startWeek: startWeek,
+            endWeek: endWeek
+        )
         self.id = id
         self.compoundID = compoundID
         self.scheduleID = scheduleID
@@ -55,19 +55,82 @@ public struct DoseRule: Codable, Sendable, Identifiable, Equatable {
         self.notes = notes
     }
 
-    private static func validate(_ cadence: Cadence) {
+    fileprivate init(
+        validating id: UUID,
+        compoundID: UUID,
+        scheduleID: UUID,
+        amount: Double,
+        unit: String,
+        cadence: Cadence,
+        timeOfDay: String?,
+        startWeek: Int?,
+        endWeek: Int?,
+        sortOrder: Int,
+        notes: String?
+    ) throws {
+        try Self.validate(amount: amount, cadence: cadence, startWeek: startWeek, endWeek: endWeek)
+        self.id = id
+        self.compoundID = compoundID
+        self.scheduleID = scheduleID
+        self.amount = amount
+        self.unit = unit
+        self.cadence = cadence
+        self.timeOfDay = timeOfDay
+        self.startWeek = startWeek
+        self.endWeek = endWeek
+        self.sortOrder = sortOrder
+        self.notes = notes
+    }
+
+    private static func validate(
+        amount: Double,
+        cadence: Cadence,
+        startWeek: Int?,
+        endWeek: Int?
+    ) throws {
+        guard amount > 0 else {
+            throw ValidationError.nonPositiveAmount
+        }
+        if let start = startWeek, let end = endWeek, end < start {
+            throw ValidationError.invalidWeekRange
+        }
+        try validate(cadence)
+    }
+
+    private static func validate(_ cadence: Cadence) throws {
         switch cadence {
         case .daily, .asNeeded:
             break
         case .everyNDays(let n):
-            precondition(n > 0, "Day interval must be positive")
+            guard n > 0 else { throw ValidationError.invalidDayInterval }
         case .everyNHours(let n):
-            precondition(n > 0, "Hour interval must be positive")
+            guard n > 0 else { throw ValidationError.invalidHourInterval }
         case .cyclical(let daysOn, let daysOff):
-            precondition(daysOn > 0 && daysOff > 0, "Cycle days must be positive")
+            guard daysOn > 0, daysOff > 0 else { throw ValidationError.invalidCycleDays }
         case .specificDays(let days):
-            precondition(!days.isEmpty, "Must specify at least one day")
-            precondition(days.allSatisfy { (0 ... 6).contains($0) }, "Days must be 0-6")
+            guard !days.isEmpty, days.allSatisfy({ (0 ... 6).contains($0) }) else {
+                throw ValidationError.invalidSpecificDays
+            }
+        }
+    }
+
+    enum ValidationError: Error, CustomStringConvertible {
+        case nonPositiveAmount
+        case invalidWeekRange
+        case invalidDayInterval
+        case invalidHourInterval
+        case invalidCycleDays
+        case invalidSpecificDays
+
+        var description: String {
+            switch self {
+            case .nonPositiveAmount: "Dose amount must be positive"
+            case .invalidWeekRange: "End week must be on or after start week"
+            case .invalidDayInterval: "Day interval must be positive"
+            case .invalidHourInterval: "Hour interval must be positive"
+            case .invalidCycleDays: "Cycle days must be positive"
+            case .invalidSpecificDays: "Days must be non-empty and in 0-6"
+            }
         }
     }
 }
@@ -183,16 +246,46 @@ public struct Schedule: Codable, Sendable, Identifiable, Equatable {
         rules: [DoseRule] = [],
         status: ScheduleStatus = .draft
     ) {
-        if let end = endDate {
-            precondition(end >= startDate, "End date must be on or after start date")
-        }
-
+        try! Self.validate(startDate: startDate, endDate: endDate)
         self.id = id
         self.name = name
         self.startDate = startDate
         self.endDate = endDate
         self.rules = rules
         self.status = status
+    }
+
+    fileprivate init(
+        validating id: UUID,
+        name: String,
+        startDate: Date,
+        endDate: Date?,
+        rules: [DoseRule],
+        status: ScheduleStatus
+    ) throws {
+        try Self.validate(startDate: startDate, endDate: endDate)
+        self.id = id
+        self.name = name
+        self.startDate = startDate
+        self.endDate = endDate
+        self.rules = rules
+        self.status = status
+    }
+
+    private static func validate(startDate: Date, endDate: Date?) throws {
+        if let end = endDate, end < startDate {
+            throw ValidationError.endBeforeStart
+        }
+    }
+
+    enum ValidationError: Error, CustomStringConvertible {
+        case endBeforeStart
+
+        var description: String {
+            switch self {
+            case .endBeforeStart: "End date must be on or after start date"
+            }
+        }
     }
 }
 
@@ -204,19 +297,25 @@ extension DoseRule {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        try self.init(
-            id: try container.decode(UUID.self, forKey: .id),
-            compoundID: try container.decode(UUID.self, forKey: .compoundID),
-            scheduleID: try container.decode(UUID.self, forKey: .scheduleID),
-            amount: try container.decode(Double.self, forKey: .amount),
-            unit: try container.decode(String.self, forKey: .unit),
-            cadence: try container.decode(Cadence.self, forKey: .cadence),
-            timeOfDay: try container.decodeIfPresent(String.self, forKey: .timeOfDay),
-            startWeek: try container.decodeIfPresent(Int.self, forKey: .startWeek),
-            endWeek: try container.decodeIfPresent(Int.self, forKey: .endWeek),
-            sortOrder: try container.decode(Int.self, forKey: .sortOrder),
-            notes: try container.decodeIfPresent(String.self, forKey: .notes)
-        )
+        do {
+            try self.init(
+                validating: try container.decode(UUID.self, forKey: .id),
+                compoundID: try container.decode(UUID.self, forKey: .compoundID),
+                scheduleID: try container.decode(UUID.self, forKey: .scheduleID),
+                amount: try container.decode(Double.self, forKey: .amount),
+                unit: try container.decode(String.self, forKey: .unit),
+                cadence: try container.decode(Cadence.self, forKey: .cadence),
+                timeOfDay: try container.decodeIfPresent(String.self, forKey: .timeOfDay),
+                startWeek: try container.decodeIfPresent(Int.self, forKey: .startWeek),
+                endWeek: try container.decodeIfPresent(Int.self, forKey: .endWeek),
+                sortOrder: try container.decode(Int.self, forKey: .sortOrder),
+                notes: try container.decodeIfPresent(String.self, forKey: .notes)
+            )
+        } catch let error as ValidationError {
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(codingPath: container.codingPath, debugDescription: error.description)
+            )
+        }
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -242,14 +341,20 @@ extension Schedule {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        try self.init(
-            id: try container.decode(UUID.self, forKey: .id),
-            name: try container.decode(String.self, forKey: .name),
-            startDate: try container.decode(Date.self, forKey: .startDate),
-            endDate: try container.decodeIfPresent(Date.self, forKey: .endDate),
-            rules: try container.decode([DoseRule].self, forKey: .rules),
-            status: try container.decode(ScheduleStatus.self, forKey: .status)
-        )
+        do {
+            try self.init(
+                validating: try container.decode(UUID.self, forKey: .id),
+                name: try container.decode(String.self, forKey: .name),
+                startDate: try container.decode(Date.self, forKey: .startDate),
+                endDate: try container.decodeIfPresent(Date.self, forKey: .endDate),
+                rules: try container.decode([DoseRule].self, forKey: .rules),
+                status: try container.decode(ScheduleStatus.self, forKey: .status)
+            )
+        } catch let error as ValidationError {
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(codingPath: container.codingPath, debugDescription: error.description)
+            )
+        }
     }
 
     public func encode(to encoder: Encoder) throws {

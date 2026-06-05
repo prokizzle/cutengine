@@ -29,12 +29,11 @@ public struct Compound: Codable, Sendable, Identifiable, Equatable {
         isUserCreated: Bool = true,
         preSeeded: Bool = false
     ) {
-        precondition(!name.isEmpty, "Compound name cannot be empty")
-        precondition(!defaultUnit.isEmpty, "Default unit cannot be empty")
-        if let halfLife = halfLifeHours {
-            precondition(halfLife > 0, "Half-life must be positive")
-        }
-
+        try! Self.validate(
+            name: name,
+            halfLifeHours: halfLifeHours,
+            defaultUnit: defaultUnit
+        )
         self.id = id
         self.name = name
         self.halfLifeHours = halfLifeHours
@@ -42,6 +41,51 @@ public struct Compound: Codable, Sendable, Identifiable, Equatable {
         self.defaultRoute = defaultRoute
         self.isUserCreated = isUserCreated
         self.preSeeded = preSeeded
+    }
+
+    fileprivate init(
+        validating id: UUID,
+        name: String,
+        halfLifeHours: Double?,
+        defaultUnit: String,
+        defaultRoute: Route,
+        isUserCreated: Bool,
+        preSeeded: Bool
+    ) throws {
+        try Self.validate(name: name, halfLifeHours: halfLifeHours, defaultUnit: defaultUnit)
+        self.id = id
+        self.name = name
+        self.halfLifeHours = halfLifeHours
+        self.defaultUnit = defaultUnit
+        self.defaultRoute = defaultRoute
+        self.isUserCreated = isUserCreated
+        self.preSeeded = preSeeded
+    }
+
+    private static func validate(name: String, halfLifeHours: Double?, defaultUnit: String) throws {
+        guard !name.isEmpty else {
+            throw ValidationError.emptyName
+        }
+        guard !defaultUnit.isEmpty else {
+            throw ValidationError.emptyDefaultUnit
+        }
+        if let halfLife = halfLifeHours, halfLife <= 0 {
+            throw ValidationError.invalidHalfLife
+        }
+    }
+
+    enum ValidationError: Error, CustomStringConvertible {
+        case emptyName
+        case emptyDefaultUnit
+        case invalidHalfLife
+
+        var description: String {
+            switch self {
+            case .emptyName: "Compound name cannot be empty"
+            case .emptyDefaultUnit: "Default unit cannot be empty"
+            case .invalidHalfLife: "Half-life must be positive"
+            }
+        }
     }
 }
 
@@ -52,15 +96,21 @@ extension Compound {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        try self.init(
-            id: try container.decode(UUID.self, forKey: .id),
-            name: try container.decode(String.self, forKey: .name),
-            halfLifeHours: try container.decodeIfPresent(Double.self, forKey: .halfLifeHours),
-            defaultUnit: try container.decode(String.self, forKey: .defaultUnit),
-            defaultRoute: try container.decode(Route.self, forKey: .defaultRoute),
-            isUserCreated: try container.decode(Bool.self, forKey: .isUserCreated),
-            preSeeded: try container.decode(Bool.self, forKey: .preSeeded)
-        )
+        do {
+            try self.init(
+                validating: try container.decode(UUID.self, forKey: .id),
+                name: try container.decode(String.self, forKey: .name),
+                halfLifeHours: try container.decodeIfPresent(Double.self, forKey: .halfLifeHours),
+                defaultUnit: try container.decode(String.self, forKey: .defaultUnit),
+                defaultRoute: try container.decode(Route.self, forKey: .defaultRoute),
+                isUserCreated: try container.decode(Bool.self, forKey: .isUserCreated),
+                preSeeded: try container.decode(Bool.self, forKey: .preSeeded)
+            )
+        } catch let error as ValidationError {
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(codingPath: container.codingPath, debugDescription: error.description)
+            )
+        }
     }
 
     public func encode(to encoder: Encoder) throws {
