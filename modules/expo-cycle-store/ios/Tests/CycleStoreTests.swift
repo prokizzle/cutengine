@@ -9,7 +9,7 @@ struct CycleStoreTests {
 
     @Test("save and retrieve compounds")
     func compoundCRUD() async throws {
-        let store = try CycleStore.inMemory()
+        let store = try await CycleStore.inMemory()
 
         let compound = Compound(
             name: "Creatine",
@@ -30,7 +30,7 @@ struct CycleStoreTests {
 
     @Test("update existing compound")
     func compoundUpdate() async throws {
-        let store = try CycleStore.inMemory()
+        let store = try await CycleStore.inMemory()
 
         let compound = Compound(name: "Test Compound", defaultUnit: "mg")
         try await store.saveCompound(compound)
@@ -50,7 +50,7 @@ struct CycleStoreTests {
 
     @Test("save and retrieve schedule with dose rules")
     func scheduleWithRules() async throws {
-        let store = try CycleStore.inMemory()
+        let store = try await CycleStore.inMemory()
 
         let schedule = Schedule(name: "Test Cycle", startDate: Date())
         try await store.saveSchedule(schedule)
@@ -93,7 +93,7 @@ struct CycleStoreTests {
 
     @Test("save and retrieve meal rules")
     func mealRuleCRUD() async throws {
-        let store = try CycleStore.inMemory()
+        let store = try await CycleStore.inMemory()
 
         let scheduleID = UUID()
         let schedule = Schedule(id: scheduleID, name: "Meal Plan", startDate: Date())
