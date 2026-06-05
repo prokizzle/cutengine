@@ -32,9 +32,36 @@ bun run lint        # tsc --noEmit
 
 ## App Store / Sideload Profiles
 
-Configured via EAS Build profiles (TODO: CUTIOS-124).
-- production: `com.feelingmindful.diet-plan` (App Store)
-- sideload: `com.feelingmindful.cutengine.power` (sideload)
+Configured via EAS Build profiles.
+- `production`: `com.feelingmindful.diet-plan` (App Store)
+- `internal`: same bundle (TestFlight)
+- `sideload`: `com.feelingmindful.cutengine.power` (AltStore/Sideloadly)
+
+### Build Commands
+
+```bash
+bun run build:prod        # eas build --profile production
+bun run build:internal    # eas build --profile internal
+bun run build:sideload    # eas build --profile sideload
+```
+
+### Pre-Submit Checklist
+
+```bash
+./scripts/pre-submit-check.sh                          # Source scan
+./scripts/verify-seed-strip.sh path/to/App.app         # Binary scan
+bun run lint                                           # Type check
+```
+
+### Sideload Distribution
+
+1. `bun run build:sideload` — produces .ipa with seeded compound library
+2. Download from EAS dashboard
+3. Install via AltStore / Sideloadly / Feather
+4. Bundle ID: `com.feelingmindful.cutengine.power` (separate from App Store listing)
+
+The sideload build includes `assets/data/seed-power.json` (46 compounds).
+The production build strips this file via `plugins/withSeedJson.ts`.
 
 ## Architecture
 
