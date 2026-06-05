@@ -72,29 +72,6 @@ public struct DoseRule: Codable, Sendable, Identifiable, Equatable {
     }
 }
 
-extension DoseRule.Cadence {
-    public static func everyNDays(_ n: Int) -> Self {
-        precondition(n > 0, "Day interval must be positive")
-        return .everyNDays(n)
-    }
-
-    public static func everyNHours(_ n: Int) -> Self {
-        precondition(n > 0, "Hour interval must be positive")
-        return .everyNHours(n)
-    }
-
-    public static func cyclical(daysOn: Int, daysOff: Int) -> Self {
-        precondition(daysOn > 0 && daysOff > 0, "Cycle days must be positive")
-        return .cyclical(daysOn: daysOn, daysOff: daysOff)
-    }
-
-    public static func specificDays(_ days: [Int]) -> Self {
-        precondition(!days.isEmpty, "Must specify at least one day")
-        precondition(days.allSatisfy { (0 ... 6).contains($0) }, "Days must be 0-6")
-        return .specificDays(days)
-    }
-}
-
 /// A container for a set of DoseRules with a name and date range.
 public struct Schedule: Codable, Sendable, Identifiable, Equatable {
     public let id: UUID
