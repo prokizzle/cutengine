@@ -173,13 +173,31 @@ public actor CycleStore {
         let existingDescriptor = FetchDescriptor<DoseRuleEntity>(
             predicate: #Predicate { $0.scheduleID == targetScheduleID }
         )
-        for entity in try ctx.fetch(existingDescriptor) {
-            ctx.delete(entity)
-        }
-        try ctx.save()
+        let existing = try ctx.fetch(existingDescriptor)
+        var existingByID = Dictionary(uniqueKeysWithValues: existing.map { ($0.id, $0) })
+        var keptIDs = Set<UUID>()
+
         for var rule in rules {
             rule.scheduleID = targetScheduleID
-            ctx.insert(DoseRuleEntity(from: rule))
+            keptIDs.insert(rule.id)
+            if let entity = existingByID[rule.id] {
+                entity.compoundID = rule.compoundID
+                entity.scheduleID = rule.scheduleID
+                entity.amount = rule.amount
+                entity.unit = rule.unit
+                entity.cadenceData = try? JSONEncoder().encode(rule.cadence)
+                entity.timeOfDay = rule.timeOfDay
+                entity.startWeek = rule.startWeek
+                entity.endWeek = rule.endWeek
+                entity.sortOrder = rule.sortOrder
+                entity.notes = rule.notes
+            } else {
+                ctx.insert(DoseRuleEntity(from: rule))
+            }
+        }
+
+        for entity in existing where !keptIDs.contains(entity.id) {
+            ctx.delete(entity)
         }
     }
 
