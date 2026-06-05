@@ -28,29 +28,6 @@ public struct Compound: Codable, Sendable, Identifiable, Equatable {
         defaultRoute: Route = .oral,
         isUserCreated: Bool = true,
         preSeeded: Bool = false
-    ) {
-        try! Self.validate(
-            name: name,
-            halfLifeHours: halfLifeHours,
-            defaultUnit: defaultUnit
-        )
-        self.id = id
-        self.name = name
-        self.halfLifeHours = halfLifeHours
-        self.defaultUnit = defaultUnit
-        self.defaultRoute = defaultRoute
-        self.isUserCreated = isUserCreated
-        self.preSeeded = preSeeded
-    }
-
-    fileprivate init(
-        validating id: UUID,
-        name: String,
-        halfLifeHours: Double?,
-        defaultUnit: String,
-        defaultRoute: Route,
-        isUserCreated: Bool,
-        preSeeded: Bool
     ) throws {
         try Self.validate(name: name, halfLifeHours: halfLifeHours, defaultUnit: defaultUnit)
         self.id = id
@@ -98,7 +75,7 @@ extension Compound {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         do {
             try self.init(
-                validating: try container.decode(UUID.self, forKey: .id),
+                id: try container.decode(UUID.self, forKey: .id),
                 name: try container.decode(String.self, forKey: .name),
                 halfLifeHours: try container.decodeIfPresent(Double.self, forKey: .halfLifeHours),
                 defaultUnit: try container.decode(String.self, forKey: .defaultUnit),

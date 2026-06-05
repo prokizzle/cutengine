@@ -35,38 +35,6 @@ public struct DoseRule: Codable, Sendable, Identifiable, Equatable {
         endWeek: Int? = nil,
         sortOrder: Int = 0,
         notes: String? = nil
-    ) {
-        try! Self.validate(
-            amount: amount,
-            cadence: cadence,
-            startWeek: startWeek,
-            endWeek: endWeek
-        )
-        self.id = id
-        self.compoundID = compoundID
-        self.scheduleID = scheduleID
-        self.amount = amount
-        self.unit = unit
-        self.cadence = cadence
-        self.timeOfDay = timeOfDay
-        self.startWeek = startWeek
-        self.endWeek = endWeek
-        self.sortOrder = sortOrder
-        self.notes = notes
-    }
-
-    fileprivate init(
-        validating id: UUID,
-        compoundID: UUID,
-        scheduleID: UUID,
-        amount: Double,
-        unit: String,
-        cadence: Cadence,
-        timeOfDay: String?,
-        startWeek: Int?,
-        endWeek: Int?,
-        sortOrder: Int,
-        notes: String?
     ) throws {
         try Self.validate(amount: amount, cadence: cadence, startWeek: startWeek, endWeek: endWeek)
         self.id = id
@@ -245,23 +213,6 @@ public struct Schedule: Codable, Sendable, Identifiable, Equatable {
         endDate: Date? = nil,
         rules: [DoseRule] = [],
         status: ScheduleStatus = .draft
-    ) {
-        try! Self.validate(startDate: startDate, endDate: endDate)
-        self.id = id
-        self.name = name
-        self.startDate = startDate
-        self.endDate = endDate
-        self.rules = rules
-        self.status = status
-    }
-
-    fileprivate init(
-        validating id: UUID,
-        name: String,
-        startDate: Date,
-        endDate: Date?,
-        rules: [DoseRule],
-        status: ScheduleStatus
     ) throws {
         try Self.validate(startDate: startDate, endDate: endDate)
         self.id = id
@@ -299,7 +250,7 @@ extension DoseRule {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         do {
             try self.init(
-                validating: try container.decode(UUID.self, forKey: .id),
+                id: try container.decode(UUID.self, forKey: .id),
                 compoundID: try container.decode(UUID.self, forKey: .compoundID),
                 scheduleID: try container.decode(UUID.self, forKey: .scheduleID),
                 amount: try container.decode(Double.self, forKey: .amount),
@@ -343,7 +294,7 @@ extension Schedule {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         do {
             try self.init(
-                validating: try container.decode(UUID.self, forKey: .id),
+                id: try container.decode(UUID.self, forKey: .id),
                 name: try container.decode(String.self, forKey: .name),
                 startDate: try container.decode(Date.self, forKey: .startDate),
                 endDate: try container.decodeIfPresent(Date.self, forKey: .endDate),
