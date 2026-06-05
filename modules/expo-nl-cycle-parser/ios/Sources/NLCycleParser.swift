@@ -29,14 +29,16 @@ public actor NLCycleParser {
         #if canImport(FoundationModels)
         if let llmResult = await parseWithLLM(tokenized), !llmResult.rules.isEmpty {
             let resolved = Tokenizer.resolve(rules: llmResult.rules, tokenMap: tokenMap)
-            return (
-                ParseResult(
-                    scheduleName: llmResult.scheduleName,
-                    rules: resolved,
-                    tokenMap: tokenMap
-                ),
-                .llm
-            )
+            if !resolved.isEmpty {
+                return (
+                    ParseResult(
+                        scheduleName: llmResult.scheduleName,
+                        rules: resolved,
+                        tokenMap: tokenMap
+                    ),
+                    .llm
+                )
+            }
         }
         #endif
 
