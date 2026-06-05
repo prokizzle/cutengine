@@ -123,12 +123,24 @@ public actor NLCycleParser {
         return ints.isEmpty ? nil : ints
     }
 
+    private func stripMarkdownFences(_ response: String) -> String {
+        var text = response.trimmingCharacters(in: .whitespacesAndNewlines)
+        if text.lowercased().hasPrefix("```") {
+            if let firstNewline = text.firstIndex(of: "\n") {
+                text = String(text[text.index(after: firstNewline)...])
+            } else {
+                text = ""
+            }
+        }
+        if text.lowercased().hasSuffix("```") {
+            text = String(text.dropLast(3)).trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        return text
+    }
+
     private func decodeLLMResponse(_ response: String) throws -> ParseResult? {
         // Extract JSON from LLM response (may contain markdown fences)
-        let jsonStr = response
-            .replacingOccurrences(of: "```json", with: "")
-            .replacingOccurrences(of: "```", with: "")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let jsonStr = stripMarkdownFences(response)
 
         guard let data = jsonStr.data(using: .utf8) else { return nil }
 
