@@ -11,6 +11,9 @@ enum BridgeConversionError: LocalizedError {
     case invalidName(String)
     case invalidDefaultUnit(String)
     case invalidHalfLife(Double)
+    case invalidScheduleName(String)
+    case invalidStartWeek(Int)
+    case invalidEndWeek(Int)
 
     var errorDescription: String? {
         switch self {
@@ -32,6 +35,12 @@ enum BridgeConversionError: LocalizedError {
             return "Default unit cannot be empty: \(value)"
         case .invalidHalfLife(let value):
             return "Half-life must be positive: \(value)"
+        case .invalidScheduleName(let value):
+            return "Schedule name cannot be empty: \(value)"
+        case .invalidStartWeek(let value):
+            return "Start week must be positive: \(value)"
+        case .invalidEndWeek(let value):
+            return "End week must be positive: \(value)"
         }
     }
 }
@@ -62,6 +71,9 @@ private enum BridgeDate {
 }
 
 private func uuid(_ value: String) throws -> UUID {
+    guard !value.isEmpty else {
+        throw BridgeConversionError.invalidUUID(value)
+    }
     guard let id = UUID(uuidString: value) else {
         throw BridgeConversionError.invalidUUID(value)
     }
@@ -197,6 +209,12 @@ struct DoseRuleRecord: Record {
 
     func toDoseRule() throws -> DoseRule {
         guard amount > 0 else { throw BridgeConversionError.invalidAmount(amount) }
+        if let start = startWeek, start <= 0 {
+            throw BridgeConversionError.invalidStartWeek(start)
+        }
+        if let end = endWeek, end <= 0 {
+            throw BridgeConversionError.invalidEndWeek(end)
+        }
         if let start = startWeek, let end = endWeek, end < start {
             throw BridgeConversionError.invalidWeekRange(start: start, end: end)
         }
@@ -236,6 +254,9 @@ struct ScheduleRecord: Record {
     }
 
     func toSchedule() throws -> Schedule {
+        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw BridgeConversionError.invalidScheduleName(name)
+        }
         let decodedStart = try BridgeDate.decode(startDate)
         let decodedEnd = try endDate.map(BridgeDate.decode)
         if let decodedEnd, decodedEnd < decodedStart {
