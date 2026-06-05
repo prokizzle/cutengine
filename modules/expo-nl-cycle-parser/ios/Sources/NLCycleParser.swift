@@ -109,6 +109,19 @@ public actor NLCycleParser {
         """
     }
 
+    private func decodeDouble(_ value: Any?) -> Double? {
+        if let number = value as? NSNumber {
+            return number.doubleValue
+        }
+        if let double = value as? Double {
+            return double
+        }
+        if let int = value as? Int {
+            return Double(int)
+        }
+        return nil
+    }
+
     private func decodeIntArray(_ value: Any?) -> [Int]? {
         guard let array = value as? [Any] else { return nil }
         let ints = array.compactMap { element -> Int? in
@@ -152,7 +165,7 @@ public actor NLCycleParser {
                 guard let token = r["token"] as? String else { return nil }
                 return ParsedRule(
                     token: token,
-                    amountMg: r["amountMg"] as? Double,
+                    amountMg: decodeDouble(r["amountMg"]),
                     cadenceText: r["cadenceText"] as? String ?? "",
                     daysOfWeek: decodeIntArray(r["daysOfWeek"]),
                     startWeek: r["startWeek"] as? Int,
