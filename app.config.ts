@@ -15,20 +15,16 @@ const config: ExpoConfig = {
     bundleIdentifier: IS_SIDELOAD
       ? "com.feelingmindful.cutengine.power"
       : "com.feelingmindful.diet-plan",
+    infoPlist: {
+      NSHealthShareUsageDescription:
+        "CutEngine reads your weight, active energy, and body metrics to compute your daily calorie target.",
+      NSHealthUpdateUsageDescription:
+        "CutEngine writes your body mass to Apple Health.",
+    },
   },
   plugins: [
     "expo-router",
     "@sentry/react-native/expo",
-    [
-      "expo-health",
-      {
-        isClinicalDataEnabled: true,
-        healthSharePermission:
-          "CutEngine reads your weight, active energy, and body metrics to compute your daily calorie target.",
-        healthUpdatePermission:
-          "CutEngine writes your body mass to Apple Health.",
-      },
-    ],
     "./plugins/withSeedJson",
   ],
   experiments: {
