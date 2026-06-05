@@ -33,7 +33,7 @@ public enum DeterministicParser {
             let token = String(match.1)
             let amount = Double(match.2)
             let unit = String(match.3)
-            let daysStr = String(match.5)
+            let daysStr = match.5.map(String.init) ?? ""
             let days = parseWeekdays(daysStr)
             let startWeek = match.6.map { Int($0) ?? 1 }
             let endWeek = match.7.map { Int($0) ?? startWeek }
