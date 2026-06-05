@@ -1,14 +1,6 @@
 import ExpoModulesCore
 
 /// Expo Module wrapping CycleStore CRUD for JS consumption.
-///
-/// JS API (auto-generated types from Swift signatures):
-/// ```ts
-/// import ExpoCycleStore from "expo-cycle-store";
-/// await ExpoCycleStore.initialize();
-/// const compounds = await ExpoCycleStore.getAllCompounds();
-/// await ExpoCycleStore.saveCompound({ id, name, ... });
-/// ```
 public class ExpoCycleStoreModule: Module {
     public func definition() -> ModuleDefinition {
         Name("ExpoCycleStore")
@@ -19,63 +11,54 @@ public class ExpoCycleStoreModule: Module {
 
         // MARK: - Compounds
 
-        AsyncFunction("getAllCompounds") { () -> [Compound] in
-            try await CycleStore.shared.allCompounds()
+        AsyncFunction("getAllCompounds") { () -> [CompoundRecord] in
+            try await CycleStore.shared.allCompounds().map(CompoundRecord.init)
         }
 
-        AsyncFunction("saveCompound") { (compound: Compound) in
-            try await CycleStore.shared.saveCompound(compound)
+        AsyncFunction("saveCompound") { (compound: CompoundRecord) in
+            try await CycleStore.shared.saveCompound(try compound.toCompound())
         }
 
         AsyncFunction("deleteCompound") { (id: String) in
-            guard let uuid = UUID(uuidString: id) else {
-                throw InvalidArgsError(id: id)
-            }
-            try await CycleStore.shared.deleteCompound(id: uuid)
+            try await CycleStore.shared.deleteCompound(id: try uuid(id))
         }
 
         // MARK: - Schedules
 
-        AsyncFunction("getAllSchedules") { () -> [Schedule] in
-            try await CycleStore.shared.allSchedules()
+        AsyncFunction("getAllSchedules") { () -> [ScheduleRecord] in
+            try await CycleStore.shared.allSchedules().map(ScheduleRecord.init)
         }
 
-        AsyncFunction("saveSchedule") { (schedule: Schedule) in
-            try await CycleStore.shared.saveSchedule(schedule)
+        AsyncFunction("saveSchedule") { (schedule: ScheduleRecord) in
+            try await CycleStore.shared.saveSchedule(try schedule.toSchedule())
         }
 
         // MARK: - Dose Rules
 
-        AsyncFunction("getDoseRules") { (scheduleID: String) -> [DoseRule] in
-            guard let uuid = UUID(uuidString: scheduleID) else {
-                throw InvalidArgsError(id: scheduleID)
-            }
-            return try await CycleStore.shared.doseRules(for: uuid)
+        AsyncFunction("getDoseRules") { (scheduleID: String) -> [DoseRuleRecord] in
+            try await CycleStore.shared.doseRules(for: try uuid(scheduleID)).map(DoseRuleRecord.init)
         }
 
-        AsyncFunction("saveDoseRules") { (rules: [DoseRule], scheduleID: String) in
-            guard let uuid = UUID(uuidString: scheduleID) else {
-                throw InvalidArgsError(id: scheduleID)
-            }
-            try await CycleStore.shared.saveDoseRules(rules, for: uuid)
+        AsyncFunction("saveDoseRules") { (rules: [DoseRuleRecord], scheduleID: String) in
+            let parsedRules = try rules.map { try $0.toDoseRule() }
+            try await CycleStore.shared.saveDoseRules(parsedRules, for: try uuid(scheduleID))
         }
 
         // MARK: - Meal Rules
 
-        AsyncFunction("getMealRules") { (scheduleID: String) -> [MealRule] in
-            guard let uuid = UUID(uuidString: scheduleID) else {
-                throw InvalidArgsError(id: scheduleID)
-            }
-            return try await CycleStore.shared.mealRules(for: uuid)
+        AsyncFunction("getMealRules") { (scheduleID: String) -> [MealRuleRecord] in
+            try await CycleStore.shared.mealRules(for: try uuid(scheduleID)).map(MealRuleRecord.init)
         }
 
-        AsyncFunction("saveMealRule") { (rule: MealRule) in
-            try await CycleStore.shared.saveMealRule(rule)
+        AsyncFunction("saveMealRule") { (rule: MealRuleRecord) in
+            try await CycleStore.shared.saveMealRule(try rule.toMealRule())
         }
     }
 }
 
-struct InvalidArgsError: LocalizedError {
-    let id: String
-    var errorDescription: String? { "Invalid UUID: \(id)" }
+private func uuid(_ value: String) throws -> UUID {
+    guard let id = UUID(uuidString: value) else {
+        throw BridgeConversionError.invalidUUID(value)
+    }
+    return id
 }
