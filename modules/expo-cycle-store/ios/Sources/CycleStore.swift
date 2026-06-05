@@ -12,8 +12,22 @@ public actor CycleStore {
 
     private init() {}
 
-    public func initialize() throws {
+    /// Initialize with App Group store (production) or in-memory (tests).
+    public func initialize(useInMemory: Bool = false) throws {
         guard container == nil else { return }
+
+        let schema = Schema([
+            CompoundEntity.self,
+            ScheduleEntity.self,
+            DoseRuleEntity.self,
+            MealRuleEntity.self,
+        ])
+
+        if useInMemory {
+            let config = ModelConfiguration(isStoredInMemoryOnly: true)
+            container = try ModelContainer(for: schema, configurations: config)
+            return
+        }
 
         guard let containerURL = FileManager.default
             .containerURL(forSecurityApplicationGroupIdentifier: Self.appGroupIdentifier)
@@ -22,12 +36,6 @@ public actor CycleStore {
         }
 
         let storeURL = containerURL.appendingPathComponent("cycle.store")
-        let schema = Schema([
-            CompoundEntity.self,
-            ScheduleEntity.self,
-            DoseRuleEntity.self,
-            MealRuleEntity.self,
-        ])
         let config = ModelConfiguration(
             "CycleStore",
             schema: schema,
