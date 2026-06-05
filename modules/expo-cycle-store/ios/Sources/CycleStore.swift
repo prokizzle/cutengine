@@ -17,9 +17,9 @@ public actor CycleStore {
     init() {}
 
     /// Fresh in-memory store for isolated unit tests.
-    static func inMemory() throws -> CycleStore {
+    public static func inMemory() async throws -> CycleStore {
         let store = CycleStore()
-        try store.initialize(useInMemory: true)
+        try await store.initialize(useInMemory: true)
         return store
     }
 
