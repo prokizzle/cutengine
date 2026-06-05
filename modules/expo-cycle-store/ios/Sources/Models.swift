@@ -22,8 +22,8 @@ public final class CompoundEntity {
         self.preSeeded = compound.preSeeded
     }
 
-    public var toStruct: Compound {
-        Compound(
+    public func toStruct() throws -> Compound {
+        try Compound(
             id: id,
             name: name,
             halfLifeHours: halfLifeHours,
@@ -52,8 +52,8 @@ public final class ScheduleEntity {
         self.statusRaw = schedule.status.rawValue
     }
 
-    public var toStruct: Schedule {
-        Schedule(
+    public func toStruct() throws -> Schedule {
+        try Schedule(
             id: id,
             name: name,
             startDate: startDate,
@@ -100,8 +100,8 @@ public final class DoseRuleEntity {
         return decoded
     }
 
-    public var toStruct: DoseRule {
-        DoseRule(
+    public func toStruct() throws -> DoseRule {
+        try DoseRule(
             id: id,
             compoundID: compoundID,
             scheduleID: scheduleID,

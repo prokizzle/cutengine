@@ -76,7 +76,7 @@ public actor CycleStore {
         let ctx = try modelContext()
         let descriptor = FetchDescriptor<CompoundEntity>(sortBy: [SortDescriptor(\.name)])
         let entities = try ctx.fetch(descriptor)
-        return entities.map(\.toStruct)
+        return try entities.map { try $0.toStruct() }
     }
 
     public func saveCompound(_ compound: Compound) throws {
@@ -118,7 +118,7 @@ public actor CycleStore {
             sortBy: [SortDescriptor(\.startDate, order: .reverse)]
         ))
         return try entities.map { entity in
-            var schedule = entity.toStruct
+            var schedule = try entity.toStruct()
             schedule.rules = try doseRules(for: entity.id, in: ctx)
             return schedule
         }
@@ -155,7 +155,7 @@ public actor CycleStore {
             predicate: #Predicate { $0.scheduleID == targetScheduleID },
             sortBy: [SortDescriptor(\.sortOrder)]
         )
-        return try ctx.fetch(descriptor).map(\.toStruct)
+        return try ctx.fetch(descriptor).map { try $0.toStruct() }
     }
 
     public func saveDoseRules(_ rules: [DoseRule], for scheduleID: UUID) throws {
@@ -191,7 +191,7 @@ public actor CycleStore {
             predicate: #Predicate { $0.scheduleID == targetScheduleID },
             sortBy: [SortDescriptor(\.sortOrder)]
         )
-        return try ctx.fetch(descriptor).map(\.toStruct)
+        return try ctx.fetch(descriptor).map { try $0.toStruct() }
     }
 
     public func saveMealRule(_ rule: MealRule) throws {
