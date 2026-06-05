@@ -3,17 +3,43 @@ import SwiftData
 
 /// Persistence layer for cycle/protocol data in the App Group container.
 /// CardioEngine reads the same container for shared weight data.
+///
+/// All SwiftData access is serialized through this actor using one shared
+/// `ModelContext`, avoiding concurrent context use without `@ModelActor`.
 public actor CycleStore {
     public static let shared = CycleStore()
 
     public static let appGroupIdentifier = "group.com.feelingmindful.shared"
 
     private var container: ModelContainer?
+    private var context: ModelContext?
 
-    private init() {}
+    init() {}
 
-    public func initialize() throws {
+    /// Fresh in-memory store for isolated unit tests.
+    static func inMemory() throws -> CycleStore {
+        let store = CycleStore()
+        try store.initialize(useInMemory: true)
+        return store
+    }
+
+    /// Initialize with App Group store (production) or in-memory (tests).
+    public func initialize(useInMemory: Bool = false) throws {
         guard container == nil else { return }
+
+        let schema = Schema([
+            CompoundEntity.self,
+            ScheduleEntity.self,
+            DoseRuleEntity.self,
+            MealRuleEntity.self,
+        ])
+
+        if useInMemory {
+            let config = ModelConfiguration(isStoredInMemoryOnly: true)
+            container = try ModelContainer(for: schema, configurations: config)
+            context = ModelContext(try modelContainer)
+            return
+        }
 
         guard let containerURL = FileManager.default
             .containerURL(forSecurityApplicationGroupIdentifier: Self.appGroupIdentifier)
@@ -22,12 +48,6 @@ public actor CycleStore {
         }
 
         let storeURL = containerURL.appendingPathComponent("cycle.store")
-        let schema = Schema([
-            CompoundEntity.self,
-            ScheduleEntity.self,
-            DoseRuleEntity.self,
-            MealRuleEntity.self,
-        ])
         let config = ModelConfiguration(
             "CycleStore",
             schema: schema,
@@ -35,6 +55,7 @@ public actor CycleStore {
             allowsSave: true
         )
         container = try ModelContainer(for: schema, configurations: config)
+        context = ModelContext(try modelContainer)
     }
 
     public var modelContainer: ModelContainer {
@@ -44,17 +65,22 @@ public actor CycleStore {
         }
     }
 
+    private func modelContext() throws -> ModelContext {
+        guard let context else { throw StoreError.notInitialized }
+        return context
+    }
+
     // MARK: - Compounds
 
     public func allCompounds() throws -> [Compound] {
-        let ctx = ModelContext(try modelContainer)
+        let ctx = try modelContext()
         let descriptor = FetchDescriptor<CompoundEntity>(sortBy: [SortDescriptor(\.name)])
         let entities = try ctx.fetch(descriptor)
         return entities.map(\.toStruct)
     }
 
     public func saveCompound(_ compound: Compound) throws {
-        let ctx = ModelContext(try modelContainer)
+        let ctx = try modelContext()
         let compoundID = compound.id
         let descriptor = FetchDescriptor<CompoundEntity>(
             predicate: #Predicate { $0.id == compoundID }
@@ -73,7 +99,7 @@ public actor CycleStore {
     }
 
     public func deleteCompound(id: UUID) throws {
-        let ctx = ModelContext(try modelContainer)
+        let ctx = try modelContext()
         let compoundID = id
         let descriptor = FetchDescriptor<CompoundEntity>(
             predicate: #Predicate { $0.id == compoundID }
@@ -87,19 +113,19 @@ public actor CycleStore {
     // MARK: - Schedules
 
     public func allSchedules() throws -> [Schedule] {
-        let ctx = ModelContext(try modelContainer)
+        let ctx = try modelContext()
         let entities = try ctx.fetch(FetchDescriptor<ScheduleEntity>(
             sortBy: [SortDescriptor(\.startDate, order: .reverse)]
         ))
         return try entities.map { entity in
             var schedule = entity.toStruct
-            schedule.rules = try doseRules(for: entity.id)
+            schedule.rules = try doseRules(for: entity.id, in: ctx)
             return schedule
         }
     }
 
     public func saveSchedule(_ schedule: Schedule) throws {
-        let ctx = ModelContext(try modelContainer)
+        let ctx = try modelContext()
         let scheduleID = schedule.id
         let descriptor = FetchDescriptor<ScheduleEntity>(
             predicate: #Predicate { $0.id == scheduleID }
@@ -112,14 +138,18 @@ public actor CycleStore {
         } else {
             ctx.insert(ScheduleEntity(from: schedule))
         }
+        try replaceDoseRules(schedule.rules, for: scheduleID, in: ctx)
         try ctx.save()
-        try saveDoseRules(schedule.rules, for: scheduleID)
     }
 
     // MARK: - Dose Rules
 
     public func doseRules(for scheduleID: UUID) throws -> [DoseRule] {
-        let ctx = ModelContext(try modelContainer)
+        let ctx = try modelContext()
+        return try doseRules(for: scheduleID, in: ctx)
+    }
+
+    private func doseRules(for scheduleID: UUID, in ctx: ModelContext) throws -> [DoseRule] {
         let targetScheduleID = scheduleID
         let descriptor = FetchDescriptor<DoseRuleEntity>(
             predicate: #Predicate { $0.scheduleID == targetScheduleID },
@@ -129,7 +159,16 @@ public actor CycleStore {
     }
 
     public func saveDoseRules(_ rules: [DoseRule], for scheduleID: UUID) throws {
-        let ctx = ModelContext(try modelContainer)
+        let ctx = try modelContext()
+        try replaceDoseRules(rules, for: scheduleID, in: ctx)
+        try ctx.save()
+    }
+
+    private func replaceDoseRules(
+        _ rules: [DoseRule],
+        for scheduleID: UUID,
+        in ctx: ModelContext
+    ) throws {
         let targetScheduleID = scheduleID
         let existingDescriptor = FetchDescriptor<DoseRuleEntity>(
             predicate: #Predicate { $0.scheduleID == targetScheduleID }
@@ -141,13 +180,12 @@ public actor CycleStore {
             rule.scheduleID = targetScheduleID
             ctx.insert(DoseRuleEntity(from: rule))
         }
-        try ctx.save()
     }
 
     // MARK: - Meal Rules
 
     public func mealRules(for scheduleID: UUID) throws -> [MealRule] {
-        let ctx = ModelContext(try modelContainer)
+        let ctx = try modelContext()
         let targetScheduleID = scheduleID
         let descriptor = FetchDescriptor<MealRuleEntity>(
             predicate: #Predicate { $0.scheduleID == targetScheduleID },
@@ -157,7 +195,7 @@ public actor CycleStore {
     }
 
     public func saveMealRule(_ rule: MealRule) throws {
-        let ctx = ModelContext(try modelContainer)
+        let ctx = try modelContext()
         let ruleID = rule.id
         let descriptor = FetchDescriptor<MealRuleEntity>(
             predicate: #Predicate { $0.id == ruleID }
