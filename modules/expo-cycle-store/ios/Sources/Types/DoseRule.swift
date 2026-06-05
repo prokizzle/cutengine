@@ -14,7 +14,7 @@ public struct DoseRule: Codable, Sendable, Identifiable, Equatable {
     public var sortOrder: Int
     public var notes: String?
 
-    public enum Cadence: Codable, Sendable, Equatable {
+    public enum Cadence: Sendable, Equatable {
         case daily
         case everyNDays(Int)
         case specificDays([Int])
@@ -68,6 +68,63 @@ public struct DoseRule: Codable, Sendable, Identifiable, Equatable {
         case .specificDays(let days):
             precondition(!days.isEmpty, "Must specify at least one day")
             precondition(days.allSatisfy { (0 ... 6).contains($0) }, "Days must be 0-6")
+        }
+    }
+}
+
+extension DoseRule.Cadence: Codable {
+    private enum CodingKeys: String, CodingKey {
+        case type, n, days, daysOn, daysOff
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let type = try container.decode(String.self, forKey: .type)
+        switch type {
+        case "daily":
+            self = .daily
+        case "everyNDays":
+            self = .everyNDays(try container.decode(Int.self, forKey: .n))
+        case "specificDays":
+            self = .specificDays(try container.decode([Int].self, forKey: .days))
+        case "cyclical":
+            self = .cyclical(
+                daysOn: try container.decode(Int.self, forKey: .daysOn),
+                daysOff: try container.decode(Int.self, forKey: .daysOff)
+            )
+        case "everyNHours":
+            self = .everyNHours(try container.decode(Int.self, forKey: .n))
+        case "asNeeded":
+            self = .asNeeded
+        default:
+            throw DecodingError.dataCorruptedError(
+                forKey: .type,
+                in: container,
+                debugDescription: "Unknown cadence type: \(type)"
+            )
+        }
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        switch self {
+        case .daily:
+            try container.encode("daily", forKey: .type)
+        case .everyNDays(let n):
+            try container.encode("everyNDays", forKey: .type)
+            try container.encode(n, forKey: .n)
+        case .specificDays(let days):
+            try container.encode("specificDays", forKey: .type)
+            try container.encode(days, forKey: .days)
+        case .cyclical(let daysOn, let daysOff):
+            try container.encode("cyclical", forKey: .type)
+            try container.encode(daysOn, forKey: .daysOn)
+            try container.encode(daysOff, forKey: .daysOff)
+        case .everyNHours(let n):
+            try container.encode("everyNHours", forKey: .type)
+            try container.encode(n, forKey: .n)
+        case .asNeeded:
+            try container.encode("asNeeded", forKey: .type)
         }
     }
 }
