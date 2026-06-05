@@ -35,33 +35,47 @@ const DISPLAY_ORDER = [
 export function TimelineSpine({ events }: { events: DoseEvent[] }) {
   const grouped = groupByTimeOfDay(events);
 
+  // Collect unknown bucket keys not in DISPLAY_ORDER for fallback rendering.
+  const unknownKeys = Object.keys(grouped).filter(
+    (k) => !DISPLAY_ORDER.includes(k)
+  );
+
   return (
     <View className="px-5 mb-8">
       {DISPLAY_ORDER.map((tod) => {
         const items = grouped[tod];
         if (!items?.length) return null;
 
-        return (
-          <View key={tod} className="mb-5">
-            {/* Bucket header */}
-            <Text className="text-text-tertiary text-[10px] font-semibold tracking-widest mb-3 ml-1">
-              {BUCKET_LABELS[tod] ?? tod.toUpperCase()}
-            </Text>
-
-            {/* Items card */}
-            <View className="bg-surface-secondary rounded-2xl overflow-hidden">
-              {items.map((event, index) => (
-                <View key={event.id}>
-                  {index > 0 && (
-                    <View className="h-px bg-white/5 mx-4" />
-                  )}
-                  <DoseRow event={event} />
-                </View>
-              ))}
-            </View>
-          </View>
-        );
+        return <BucketSection key={tod} tod={tod} items={items} />;
       })}
+      {/* Fallback: render unknown time-of-day buckets so no items vanish silently. */}
+      {unknownKeys.map((key) => (
+        <BucketSection key={key} tod={key} items={grouped[key]!} />
+      ))}
+    </View>
+  );
+}
+
+function BucketSection({
+  tod,
+  items,
+}: {
+  tod: string;
+  items: DoseEvent[];
+}) {
+  return (
+    <View className="mb-5">
+      <Text className="text-text-tertiary text-[10px] font-semibold tracking-widest mb-3 ml-1">
+        {BUCKET_LABELS[tod] ?? tod.toUpperCase()}
+      </Text>
+      <View className="bg-surface-secondary rounded-2xl overflow-hidden">
+        {items.map((event, index) => (
+          <View key={event.id}>
+            {index > 0 && <View className="h-px bg-white/5 mx-4" />}
+            <DoseRow event={event} />
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
@@ -105,7 +119,7 @@ function DoseRow({ event }: { event: DoseEvent }) {
         {/* Cycle source chip */}
         {event.regimen && (
           <Text className="text-text-tertiary/50 text-xs mt-0.5">
-            {event.regimen} · {event.weekLabel}
+            {event.regimen}{event.weekLabel ? ` · ${event.weekLabel}` : ""}
           </Text>
         )}
       </View>

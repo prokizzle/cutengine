@@ -18,7 +18,10 @@ function MacroPill({
   color: string;
 }) {
   return (
-    <View className="flex-1 bg-surface-secondary rounded-xl px-3 py-3 items-center">
+    <View
+      className="flex-1 bg-surface-secondary rounded-xl px-3 py-3 items-center border-t-2"
+      style={{ borderTopColor: color }}
+    >
       <Text className="text-text-secondary text-xs mb-0.5">{label}</Text>
       <Text className="text-text-primary text-xl font-bold">
         {value}
