@@ -11,7 +11,7 @@ struct CycleStoreTests {
     func compoundCRUD() async throws {
         let store = try await CycleStore.inMemory()
 
-        let compound = Compound(
+        let compound = try Compound(
             name: "Creatine",
             defaultUnit: "g",
             defaultRoute: .oral
@@ -32,7 +32,7 @@ struct CycleStoreTests {
     func compoundUpdate() async throws {
         let store = try await CycleStore.inMemory()
 
-        let compound = Compound(name: "Test Compound", defaultUnit: "mg")
+        let compound = try Compound(name: "Test Compound", defaultUnit: "mg")
         try await store.saveCompound(compound)
 
         var updated = compound
@@ -52,11 +52,11 @@ struct CycleStoreTests {
     func scheduleWithRules() async throws {
         let store = try await CycleStore.inMemory()
 
-        let schedule = Schedule(name: "Test Cycle", startDate: Date())
+        let schedule = try Schedule(name: "Test Cycle", startDate: Date())
         try await store.saveSchedule(schedule)
 
         let rules = [
-            DoseRule(
+            try DoseRule(
                 compoundID: UUID(),
                 scheduleID: schedule.id,
                 amount: 500,
@@ -65,7 +65,7 @@ struct CycleStoreTests {
                 timeOfDay: "morning",
                 sortOrder: 0
             ),
-            DoseRule(
+            try DoseRule(
                 compoundID: UUID(),
                 scheduleID: schedule.id,
                 amount: 50,
@@ -96,7 +96,7 @@ struct CycleStoreTests {
         let store = try await CycleStore.inMemory()
 
         let scheduleID = UUID()
-        let schedule = Schedule(id: scheduleID, name: "Meal Plan", startDate: Date())
+        let schedule = try Schedule(id: scheduleID, name: "Meal Plan", startDate: Date())
         try await store.saveSchedule(schedule)
 
         let mealRule = MealRule(
@@ -121,10 +121,10 @@ struct CycleStoreTests {
     // MARK: - Compound Route
 
     @Test("compound route roundtrip")
-    func compoundRouteRoundtrip() {
+    func compoundRouteRoundtrip() throws {
         let routes: [Compound.Route] = [.oral, .injectable, .topical, .sublingual, .nasal, .other]
         for route in routes {
-            let compound = Compound(name: "Test", defaultRoute: route)
+            let compound = try Compound(name: "Test", defaultRoute: route)
             #expect(compound.defaultRoute == route)
             #expect(Compound.Route(rawValue: route.rawValue) == route)
         }
