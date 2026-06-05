@@ -40,7 +40,7 @@ public class ExpoNLCycleParserModule: Module {
                         "timeOfDay": bridgeOptional(rule.timeOfDay),
                     ] as [String: Any]
                 },
-                "tokenMap": result.tokenMap,
+                "tokenMap": result.tokenMap as [String: Any],
                 "method": method.rawValue,
             ]
         }
