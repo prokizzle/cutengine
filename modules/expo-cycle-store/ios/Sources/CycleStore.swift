@@ -145,6 +145,27 @@ public actor CycleStore {
         try ctx.save()
     }
 
+    public func deleteSchedule(id: UUID) throws {
+        let ctx = try modelContext()
+        let scheduleID = id
+        let descriptor = FetchDescriptor<ScheduleEntity>(
+            predicate: #Predicate { $0.id == scheduleID }
+        )
+        guard let entity = try ctx.fetch(descriptor).first else { return }
+
+        try replaceDoseRules([], for: scheduleID, in: ctx)
+
+        let mealDescriptor = FetchDescriptor<MealRuleEntity>(
+            predicate: #Predicate { $0.scheduleID == scheduleID }
+        )
+        for meal in try ctx.fetch(mealDescriptor) {
+            ctx.delete(meal)
+        }
+
+        ctx.delete(entity)
+        try ctx.save()
+    }
+
     // MARK: - Dose Rules
 
     public func doseRules(for scheduleID: UUID) throws -> [DoseRule] {

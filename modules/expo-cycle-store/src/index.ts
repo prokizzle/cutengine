@@ -86,6 +86,7 @@ export default {
   // Schedules
   getAllSchedules: (): Promise<Schedule[]> => NativeModule.getAllSchedules(),
   saveSchedule: (schedule: Schedule): Promise<void> => NativeModule.saveSchedule(schedule),
+  deleteSchedule: (id: string): Promise<void> => NativeModule.deleteSchedule(id),
 
   // Dose Rules
   getDoseRules: (scheduleID: string): Promise<DoseRule[]> => NativeModule.getDoseRules(scheduleID),
@@ -95,4 +96,5 @@ export default {
   // Meal Rules
   getMealRules: (scheduleID: string): Promise<MealRule[]> => NativeModule.getMealRules(scheduleID),
   saveMealRule: (rule: MealRule): Promise<void> => NativeModule.saveMealRule(rule),
+  deleteMealRule: (id: string): Promise<void> => NativeModule.deleteMealRule(id),
 };

@@ -33,6 +33,10 @@ public class ExpoCycleStoreModule: Module {
             try await CycleStore.shared.saveSchedule(try schedule.toSchedule())
         }
 
+        AsyncFunction("deleteSchedule") { (id: String) in
+            try await CycleStore.shared.deleteSchedule(id: try uuid(id))
+        }
+
         // MARK: - Dose Rules
 
         AsyncFunction("getDoseRules") { (scheduleID: String) -> [DoseRuleRecord] in
@@ -52,6 +56,10 @@ public class ExpoCycleStoreModule: Module {
 
         AsyncFunction("saveMealRule") { (rule: MealRuleRecord) in
             try await CycleStore.shared.saveMealRule(try rule.toMealRule())
+        }
+
+        AsyncFunction("deleteMealRule") { (id: String) in
+            try await CycleStore.shared.deleteMealRule(id: try uuid(id))
         }
     }
 }
