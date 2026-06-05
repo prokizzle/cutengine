@@ -140,7 +140,7 @@ public final class MealRuleEntity {
         guard let data = itemsData,
               let decoded = try? JSONDecoder().decode([MealItem].self, from: data)
         else { return [] }
-        return decoded
+        return decoded.sorted { $0.sortOrder < $1.sortOrder }
     }
 
     public var toStruct: MealRule {
