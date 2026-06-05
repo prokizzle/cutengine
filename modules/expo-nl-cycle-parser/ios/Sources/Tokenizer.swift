@@ -18,9 +18,19 @@ public enum Tokenizer {
 
         for compound in sorted {
             let token = "[tok\(index)]"
-            // Case-insensitive replacement
-            if let range = text.range(of: compound, options: .caseInsensitive) {
+            var searchStart = text.startIndex
+            var replaced = false
+            while searchStart < text.endIndex,
+                  let range = text.range(
+                      of: compound,
+                      options: .caseInsensitive,
+                      range: searchStart ..< text.endIndex
+                  ) {
                 text.replaceSubrange(range, with: token)
+                searchStart = text.index(range.lowerBound, offsetBy: token.count, limitedBy: text.endIndex) ?? text.endIndex
+                replaced = true
+            }
+            if replaced {
                 map[token] = compound
                 index += 1
             }
@@ -35,8 +45,7 @@ public enum Tokenizer {
         tokenMap: [String: String]
     ) -> [ParsedRule] {
         rules.map { rule in
-            var resolved = rule
-            return ParsedRule(
+            ParsedRule(
                 token: tokenMap[rule.token] ?? rule.token,
                 amountMg: rule.amountMg,
                 cadenceText: rule.cadenceText,

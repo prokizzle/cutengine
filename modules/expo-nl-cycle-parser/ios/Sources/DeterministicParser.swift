@@ -5,22 +5,21 @@ import Foundation
 public enum DeterministicParser {
     // Matches: "[tok1] 500mg/wk split Mon/Thu"
     private static let doseLinePattern =
-        #/(?:^|,\s*|;\s*|\n)\s*(\[tok\d+\])\s*(\d+(?:\.\d+)?)\s*(mg|g|IU|mcg|ml)\s*[/]\s*(wk|week)\s*(?:split\s+)?(\w+(?:[/]\w+)*)?(?:\s+wks?\s+(\d+)(?:\s*[-–]\s*(\d+))?)?/#
+        #/(?:^|,\s*|;\s*|\n|:\s*)\s*(\[tok\d+\])\s*(\d+(?:\.\d+)?)\s*(mg|g|IU|mcg|ml)\s*[/]\s*(wk|week)\s*(?:split\s+)?(\w+(?:[/]\w+)*)?(?:\s+wks?\s+(\d+)(?:\s*[-–]\s*(\d+))?)?/#
 
     // Matches: "50mg ED wks 1-6"
     private static let edPattern =
-        #/(?:^|,\s*|;\s*|\n)\s*(\[tok\d+\])\s*(\d+(?:\.\d+)?)\s*(mg|g|IU|mcg|ml)\s+ED\s*(?:wks?\s+(\d+)(?:\s*[-–]\s*(\d+))?)?/#
+        #/(?:^|,\s*|;\s*|\n|:\s*)\s*(\[tok\d+\])\s*(\d+(?:\.\d+)?)\s*(mg|g|IU|mcg|ml)\s+ED\s*(?:wks?\s+(\d+)(?:\s*[-–]\s*(\d+))?)?/#
 
     // Matches: "0.5mg EOD" or "250mg E3D"
     private static let intervalPattern =
-        #/(?:^|,\s*|;\s*|\n)\s*(\[tok\d+\])\s*(\d+(?:\.\d+)?)\s*(mg|g|IU|mcg|ml)\s+E(?:OD|(\d+)D)\s*(?:wks?\s+(\d+)(?:\s*[-–]\s*(\d+))?)?/#
+        #/(?:^|,\s*|;\s*|\n|:\s*)\s*(\[tok\d+\])\s*(\d+(?:\.\d+)?)\s*(mg|g|IU|mcg|ml)\s+E(?:OD|(\d+)D)\s*(?:wks?\s+(\d+)(?:\s*[-–]\s*(\d+))?)?/#
 
     // Matches: "as needed"
     private static let asNeededPattern =
-        #/(?:^|,\s*|;\s*|\n)\s*(\[tok\d+\])\s*as\s+needed/#
+        #/(?:^|,\s*|;\s*|\n|:\s*)\s*(\[tok\d+\])\s*as\s+needed/#
 
     private static let scheduleNamePattern = #/^([^.].+?)(?:\s*:\s*)/#
-    private static let integerPattern = #/(\d+)/#
 
     public static func parse(_ input: String) -> ParseResult {
         let name = scheduleName(from: input)
@@ -77,7 +76,7 @@ public enum DeterministicParser {
             let token = String(match.1)
             let amount = Double(match.2)
             let unit = String(match.3)
-            let intervalDays = match.4.map { Int($0) } ?? 2
+            let intervalDays = match.4.flatMap { Int($0) } ?? 2
             let startWeek = match.5.map { Int($0) ?? 1 }
             let endWeek = match.6.map { Int($0) ?? startWeek }
 
