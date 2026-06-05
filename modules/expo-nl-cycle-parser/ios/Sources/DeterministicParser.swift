@@ -5,7 +5,7 @@ import Foundation
 public enum DeterministicParser {
     // Matches: "[tok1] 500mg/wk split Mon/Thu"
     private static let doseLinePattern =
-        #/(?:^|,\s*|;\s*|\n|:\s*)\s*(\[tok\d+\])\s*(\d+(?:\.\d+)?)\s*(mg|g|IU|mcg|ml)\s*[/]\s*(wk|week)\s*(?:split\s+)?(\w+(?:[/]\w+)*)?(?:\s+wks?\s+(\d+)(?:\s*[-–]\s*(\d+))?)?/#
+        #/(?:^|,\s*|;\s*|\n|:\s*)\s*(\[tok\d+\])\s*(\d+(?:\.\d+)?)\s*(mg|g|IU|mcg|ml)\s*[/]\s*(wk|week)\s*(?:split\s+(\w+(?:[/]\w+)*))?(?:\s+wks?\s+(\d+)(?:\s*[-–]\s*(\d+))?)?/#
 
     // Matches: "50mg ED wks 1-6"
     private static let edPattern =
