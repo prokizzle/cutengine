@@ -173,10 +173,13 @@ public actor NLCycleParser {
             let ruleDicts = dict["rules"] as? [[String: Any]] ?? []
             let rules: [ParsedRule] = ruleDicts.compactMap { r in
                 guard let token = r["token"] as? String else { return nil }
+                let cadenceText = (r["cadenceText"] as? String)?
+                    .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                guard !cadenceText.isEmpty else { return nil }
                 return ParsedRule(
                     token: token,
                     amountMg: decodeDouble(r["amountMg"]),
-                    cadenceText: r["cadenceText"] as? String ?? "",
+                    cadenceText: cadenceText,
                     daysOfWeek: decodeIntArray(r["daysOfWeek"]),
                     startWeek: decodeInt(r["startWeek"]) ?? 1,
                     endWeek: decodeInt(r["endWeek"]),

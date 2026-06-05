@@ -50,9 +50,17 @@ public enum Tokenizer {
         rules: [ParsedRule],
         tokenMap: [String: String]
     ) -> [ParsedRule] {
-        rules.map { rule in
-            ParsedRule(
-                token: tokenMap[rule.token] ?? rule.token,
+        rules.compactMap { rule in
+            let resolvedToken: String
+            if let name = tokenMap[rule.token] {
+                resolvedToken = name
+            } else if rule.token.hasPrefix("[tok"), rule.token.hasSuffix("]") {
+                return nil
+            } else {
+                resolvedToken = rule.token
+            }
+            return ParsedRule(
+                token: resolvedToken,
                 amountMg: rule.amountMg,
                 cadenceText: rule.cadenceText,
                 daysOfWeek: rule.daysOfWeek,
