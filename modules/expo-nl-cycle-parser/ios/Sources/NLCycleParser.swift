@@ -183,7 +183,7 @@ public actor NLCycleParser {
                     amountMg: decodeDouble(r["amountMg"]),
                     cadenceText: cadenceText,
                     daysOfWeek: decodeIntArray(r["daysOfWeek"]),
-                    startWeek: decodeInt(r["startWeek"]) ?? 1,
+                    startWeek: decodeInt(r["startWeek"]),
                     endWeek: decodeInt(r["endWeek"]),
                     timeOfDay: r["timeOfDay"] as? String
                 )
