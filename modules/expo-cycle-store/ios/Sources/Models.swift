@@ -79,13 +79,13 @@ public final class DoseRuleEntity {
     public var sortOrder: Int
     public var notes: String?
 
-    public init(from rule: DoseRule) {
+    public init(from rule: DoseRule) throws {
         self.id = rule.id
         self.compoundID = rule.compoundID
         self.scheduleID = rule.scheduleID
         self.amount = rule.amount
         self.unit = rule.unit
-        self.cadenceData = try? JSONEncoder().encode(rule.cadence)
+        self.cadenceData = try JSONEncoder().encode(rule.cadence)
         self.timeOfDay = rule.timeOfDay
         self.startWeek = rule.startWeek
         self.endWeek = rule.endWeek
@@ -127,12 +127,12 @@ public final class MealRuleEntity {
     public var itemsData: Data?
     public var sortOrder: Int
 
-    public init(from rule: MealRule) {
+    public init(from rule: MealRule) throws {
         self.id = rule.id
         self.scheduleID = rule.scheduleID
         self.label = rule.label
         self.time = rule.time
-        self.itemsData = try? JSONEncoder().encode(rule.items)
+        self.itemsData = try JSONEncoder().encode(rule.items)
         self.sortOrder = rule.sortOrder
     }
 

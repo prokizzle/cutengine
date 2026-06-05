@@ -66,6 +66,9 @@ public actor CycleStore {
     }
 
     private func modelContext() throws -> ModelContext {
+        if context == nil {
+            try initialize()
+        }
         guard let context else { throw StoreError.notInitialized }
         return context
     }
@@ -185,14 +188,14 @@ public actor CycleStore {
                 entity.scheduleID = rule.scheduleID
                 entity.amount = rule.amount
                 entity.unit = rule.unit
-                entity.cadenceData = try? JSONEncoder().encode(rule.cadence)
+                entity.cadenceData = try JSONEncoder().encode(rule.cadence)
                 entity.timeOfDay = rule.timeOfDay
                 entity.startWeek = rule.startWeek
                 entity.endWeek = rule.endWeek
                 entity.sortOrder = rule.sortOrder
                 entity.notes = rule.notes
             } else {
-                ctx.insert(DoseRuleEntity(from: rule))
+                ctx.insert(try DoseRuleEntity(from: rule))
             }
         }
 
@@ -223,12 +226,24 @@ public actor CycleStore {
             existing.scheduleID = rule.scheduleID
             existing.label = rule.label
             existing.time = rule.time
-            existing.itemsData = try? JSONEncoder().encode(rule.items)
+            existing.itemsData = try JSONEncoder().encode(rule.items)
             existing.sortOrder = rule.sortOrder
         } else {
-            ctx.insert(MealRuleEntity(from: rule))
+            ctx.insert(try MealRuleEntity(from: rule))
         }
         try ctx.save()
+    }
+
+    public func deleteMealRule(id: UUID) throws {
+        let ctx = try modelContext()
+        let ruleID = id
+        let descriptor = FetchDescriptor<MealRuleEntity>(
+            predicate: #Predicate { $0.id == ruleID }
+        )
+        if let entity = try ctx.fetch(descriptor).first {
+            ctx.delete(entity)
+            try ctx.save()
+        }
     }
 }
 
