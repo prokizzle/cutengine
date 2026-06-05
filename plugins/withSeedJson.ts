@@ -1,29 +1,29 @@
 import type { ConfigPlugin } from "expo/config-plugins";
-import { withXcodeProject } from "expo/config-plugins";
 
 /**
- * Expo Config Plugin that gates seed JSON inclusion by build variant.
+ * Gates seed JSON inclusion by build variant.
  *
- * Production (APP_VARIANT != "sideload"): removes seed-power.json from
- * the bundle. Build script strips it from the IPA as a second layer.
+ * Production/Internal (APP_VARIANT != "sideload"): strips seed-power.json
+ * from bundled assets via exclusion glob.
  *
- * Sideload (APP_VARIANT == "sideload"): includes seed-power.json as a
- * bundled asset so the app can seed its compound library on first launch.
+ * Sideload (APP_VARIANT == "sideload"): includes seed-power.json so the
+ * app can seed its compound library on first launch.
  *
- * Verifiable post-build via:
- *   strings App.app/App | grep -iE "tren|anavar|nandrolone|sarm"
- * which must return empty for production.
+ * Verify production build:
+ *   strings App.app/App | grep -qiE '\b(tren|anavar|nandrolone)\b'
+ * must return empty.
  */
 const withSeedJson: ConfigPlugin = (config) => {
   const isSideload = process.env.APP_VARIANT === "sideload";
 
   if (!isSideload) {
-    // Production / internal builds: strip seed from asset bundle patterns.
-    // The default wildcard "assets/**" would pick it up if present.
-    config.assetBundlePatterns = config.assetBundlePatterns ?? [];
-    config.assetBundlePatterns = config.assetBundlePatterns.filter(
-      (p) => !p.includes("data/seed-power")
-    );
+    // Explicit assetBundlePatterns with seed file excluded via negated glob.
+    // The Expo default ("assets/**") would pick it up; we enumerate
+    // wanted patterns and prepend the exclusion.
+    config.assetBundlePatterns = [
+      "!assets/data/seed-power.json",
+      "assets/**",
+    ];
   }
 
   return config;

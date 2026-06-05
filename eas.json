@@ -39,8 +39,7 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "nick@feelingmindful.com",
-        "ascAppId": "com.feelingmindful.diet-plan"
+        "appleId": "nick@feelingmindful.com"
       }
     }
   }

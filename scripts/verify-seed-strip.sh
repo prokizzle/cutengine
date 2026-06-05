@@ -14,42 +14,36 @@ if [ ! -d "$APP" ]; then
     exit 1
 fi
 
-BANNED=(
-    "tren"
-    "anavar"
-    "nandrolone"
-    "sarm"
-    "dianabol"
-    "stanozolol"
-    "trenbolone"
+# Single-word terms use word-boundary grep to avoid false positives
+# (e.g. "deca" matching "decimal", "sarm" matching "sarmatian").
+BANNED_WORDS=(
+    "tren" "anavar" "nandrolone" "sarm" "dianabol" "stanozolol"
+    "trenbolone" "masteron" "primobolan" "winstrol" "deca"
+    "equipoise" "halotestin" "anadrol" "superdrol" "clenbuterol"
+    "arimidex" "aromasin" "letrozole" "nolvadex" "clomid"
+    "hcg" "hgh" "peptide"
+)
+
+# Multi-word phrases checked via fixed-string (-F) to handle spaces.
+BANNED_PHRASES=(
     "testosterone enanthate"
     "testosterone cypionate"
-    "masteron"
-    "primobolan"
-    "winstrol"
-    "deca"
-    "equipoise"
-    "halotestin"
-    "anadrol"
-    "superdrol"
-    "clenbuterol"
-    "arimidex"
-    "aromasin"
-    "letrozole"
-    "nolvadex"
-    "clomid"
-    "hcg"
-    "hgh"
-    "peptide"
 )
 
 echo "Verifying seed strip for: $APP"
 echo ""
 
 FOUND=0
-for term in "${BANNED[@]}"; do
-    if strings "$APP/App" 2>/dev/null | grep -qi "$term"; then
+for term in "${BANNED_WORDS[@]}"; do
+    if strings "$APP/App" 2>/dev/null | grep -qiE "\\b${term}\\b"; then
         echo "FAIL: Found '$term' in binary"
+        FOUND=$((FOUND + 1))
+    fi
+done
+
+for phrase in "${BANNED_PHRASES[@]}"; do
+    if strings "$APP/App" 2>/dev/null | grep -qiF "$phrase"; then
+        echo "FAIL: Found '$phrase' in binary"
         FOUND=$((FOUND + 1))
     fi
 done
