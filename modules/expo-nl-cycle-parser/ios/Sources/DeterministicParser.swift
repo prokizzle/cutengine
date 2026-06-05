@@ -21,7 +21,7 @@ public enum DeterministicParser {
 
     private static let scheduleNamePattern = #/^([^.].+?)(?:\s*:\s*)/#
 
-    public static func parse(_ input: String) -> ParseResult {
+    public static func parse(_ input: String, tokenMap: [String: String] = [:]) -> ParseResult {
         let name = scheduleName(from: input)
         var rules: [ParsedRule] = []
 
@@ -102,13 +102,6 @@ public enum DeterministicParser {
                 startWeek: nil,
                 endWeek: nil
             ))
-        }
-
-        // Build token map from any remaining tokens
-        var tokenMap: [String: String] = [String: String]()
-        let allTokens = rules.map(\.token) + input.matches(of: #/\[tok\d+\]/#).map { String($0.0) }
-        for token in Set(allTokens) {
-            tokenMap[token] = token
         }
 
         return ParseResult(scheduleName: name, rules: rules, tokenMap: tokenMap)
