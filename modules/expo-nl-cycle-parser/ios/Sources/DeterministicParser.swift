@@ -35,8 +35,8 @@ public enum DeterministicParser {
             let unit = String(match.3)
             let daysStr = match.5.map(String.init) ?? ""
             let days = parseWeekdays(daysStr)
-            let startWeek = match.6.map { Int($0) ?? 1 }
-            let endWeek = match.7.map { Int($0) ?? startWeek }
+            let startWeek = match.6.flatMap { Int($0) }
+            let endWeek = match.7.flatMap { Int($0) }
 
             let cadenceText = days.isEmpty ? "\(amount ?? 0)\(unit)/wk" : "\(amount ?? 0)\(unit)/wk \(daysStr)"
             rules.append(ParsedRule(
@@ -44,7 +44,7 @@ public enum DeterministicParser {
                 amountMg: amount.map { normalizeToMg($0, unit: unit) },
                 cadenceText: cadenceText,
                 daysOfWeek: days.isEmpty ? nil : days,
-                startWeek: startWeek ?? 1,
+                startWeek: startWeek,
                 endWeek: endWeek
             ))
             // Remove matched portion
@@ -58,15 +58,15 @@ public enum DeterministicParser {
             let token = String(match.1)
             let amount = Double(match.2)
             let unit = String(match.3)
-            let startWeek = match.4.map { Int($0) ?? 1 }
-            let endWeek = match.5.map { Int($0) ?? startWeek }
+            let startWeek = match.4.flatMap { Int($0) }
+            let endWeek = match.5.flatMap { Int($0) }
 
             rules.append(ParsedRule(
                 token: token,
                 amountMg: amount.map { normalizeToMg($0, unit: unit) },
                 cadenceText: "ED",
                 daysOfWeek: nil,
-                startWeek: startWeek ?? 1,
+                startWeek: startWeek,
                 endWeek: endWeek
             ))
         }
@@ -77,8 +77,8 @@ public enum DeterministicParser {
             let amount = Double(match.2)
             let unit = String(match.3)
             let intervalDays = match.4.flatMap { Int($0) } ?? 2
-            let startWeek = match.5.map { Int($0) ?? 1 }
-            let endWeek = match.6.map { Int($0) ?? startWeek }
+            let startWeek = match.5.flatMap { Int($0) }
+            let endWeek = match.6.flatMap { Int($0) }
 
             let label = intervalDays == 2 ? "EOD" : "E\(intervalDays)D"
             rules.append(ParsedRule(
@@ -86,7 +86,7 @@ public enum DeterministicParser {
                 amountMg: amount.map { normalizeToMg($0, unit: unit) },
                 cadenceText: label,
                 daysOfWeek: nil,
-                startWeek: startWeek ?? 1,
+                startWeek: startWeek,
                 endWeek: endWeek
             ))
         }
@@ -99,7 +99,7 @@ public enum DeterministicParser {
                 amountMg: nil,
                 cadenceText: "as needed",
                 daysOfWeek: nil,
-                startWeek: 1,
+                startWeek: nil,
                 endWeek: nil
             ))
         }
