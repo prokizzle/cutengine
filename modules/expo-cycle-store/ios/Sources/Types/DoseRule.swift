@@ -147,9 +147,16 @@ extension DoseRule.Cadence: Codable {
         case "cyclical":
             let daysOn = try container.decode(Int.self, forKey: .daysOn)
             let daysOff = try container.decode(Int.self, forKey: .daysOff)
-            guard daysOn > 0, daysOff > 0 else {
+            guard daysOn > 0 else {
                 throw DecodingError.dataCorruptedError(
                     forKey: .daysOn,
+                    in: container,
+                    debugDescription: "Cycle days must be positive"
+                )
+            }
+            guard daysOff > 0 else {
+                throw DecodingError.dataCorruptedError(
+                    forKey: .daysOff,
                     in: container,
                     debugDescription: "Cycle days must be positive"
                 )

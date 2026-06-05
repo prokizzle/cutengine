@@ -40,7 +40,7 @@ public struct Compound: Codable, Sendable, Identifiable, Equatable {
     }
 
     private static func validate(name: String, halfLifeHours: Double?, defaultUnit: String) throws {
-        guard !name.isEmpty else {
+        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw ValidationError.emptyName
         }
         guard !defaultUnit.isEmpty else {
