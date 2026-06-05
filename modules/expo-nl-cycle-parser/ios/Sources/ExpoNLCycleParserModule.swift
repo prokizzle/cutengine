@@ -12,6 +12,10 @@ import ExpoModulesCore
 /// // result = { scheduleName, rules: [...], tokenMap: {...}, method: "deterministic" | "llm" }
 /// ```
 public class ExpoNLCycleParserModule: Module {
+    private func bridgeOptional<T>(_ value: T?) -> Any {
+        value.map { $0 as Any } ?? NSNull()
+    }
+
     public func definition() -> ModuleDefinition {
         Name("ExpoNLCycleParser")
 
@@ -24,16 +28,16 @@ public class ExpoNLCycleParserModule: Module {
             )
 
             return [
-                "scheduleName": result.scheduleName as Any,
+                "scheduleName": bridgeOptional(result.scheduleName),
                 "rules": result.rules.map { rule in
                     [
                         "token": rule.token,
-                        "amountMg": rule.amountMg as Any,
+                        "amountMg": bridgeOptional(rule.amountMg),
                         "cadenceText": rule.cadenceText,
-                        "daysOfWeek": rule.daysOfWeek as Any,
-                        "startWeek": rule.startWeek as Any,
-                        "endWeek": rule.endWeek as Any,
-                        "timeOfDay": rule.timeOfDay as Any,
+                        "daysOfWeek": bridgeOptional(rule.daysOfWeek),
+                        "startWeek": bridgeOptional(rule.startWeek),
+                        "endWeek": bridgeOptional(rule.endWeek),
+                        "timeOfDay": bridgeOptional(rule.timeOfDay),
                     ] as [String: Any]
                 },
                 "tokenMap": result.tokenMap,
