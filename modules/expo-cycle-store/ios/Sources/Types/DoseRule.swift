@@ -59,6 +59,12 @@ public struct DoseRule: Codable, Sendable, Identifiable, Equatable {
         guard amount > 0 else {
             throw ValidationError.nonPositiveAmount
         }
+        if let start = startWeek, start <= 0 {
+            throw ValidationError.invalidStartWeek
+        }
+        if let end = endWeek, end <= 0 {
+            throw ValidationError.invalidEndWeek
+        }
         if let start = startWeek, let end = endWeek, end < start {
             throw ValidationError.invalidWeekRange
         }
@@ -84,6 +90,8 @@ public struct DoseRule: Codable, Sendable, Identifiable, Equatable {
 
     enum ValidationError: Error, CustomStringConvertible {
         case nonPositiveAmount
+        case invalidStartWeek
+        case invalidEndWeek
         case invalidWeekRange
         case invalidDayInterval
         case invalidHourInterval
@@ -93,6 +101,8 @@ public struct DoseRule: Codable, Sendable, Identifiable, Equatable {
         var description: String {
             switch self {
             case .nonPositiveAmount: "Dose amount must be positive"
+            case .invalidStartWeek: "Start week must be positive"
+            case .invalidEndWeek: "End week must be positive"
             case .invalidWeekRange: "End week must be on or after start week"
             case .invalidDayInterval: "Day interval must be positive"
             case .invalidHourInterval: "Hour interval must be positive"
@@ -214,7 +224,7 @@ public struct Schedule: Codable, Sendable, Identifiable, Equatable {
         rules: [DoseRule] = [],
         status: ScheduleStatus = .draft
     ) throws {
-        try Self.validate(startDate: startDate, endDate: endDate)
+        try Self.validate(name: name, startDate: startDate, endDate: endDate)
         self.id = id
         self.name = name
         self.startDate = startDate
@@ -223,17 +233,22 @@ public struct Schedule: Codable, Sendable, Identifiable, Equatable {
         self.status = status
     }
 
-    private static func validate(startDate: Date, endDate: Date?) throws {
+    private static func validate(name: String, startDate: Date, endDate: Date?) throws {
+        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw ValidationError.emptyName
+        }
         if let end = endDate, end < startDate {
             throw ValidationError.endBeforeStart
         }
     }
 
     enum ValidationError: Error, CustomStringConvertible {
+        case emptyName
         case endBeforeStart
 
         var description: String {
             switch self {
+            case .emptyName: "Schedule name cannot be empty"
             case .endBeforeStart: "End date must be on or after start date"
             }
         }
