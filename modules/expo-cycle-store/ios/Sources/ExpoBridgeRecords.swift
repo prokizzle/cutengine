@@ -6,6 +6,8 @@ enum BridgeConversionError: LocalizedError {
     case invalidDate(String)
     case invalidCadence(String)
     case invalidAmount(Double)
+    case invalidWeekRange(start: Int, end: Int)
+    case invalidDateRange(start: String, end: String)
 
     var errorDescription: String? {
         switch self {
@@ -17,6 +19,10 @@ enum BridgeConversionError: LocalizedError {
             return "Invalid cadence: \(value)"
         case .invalidAmount(let value):
             return "Dose amount must be positive: \(value)"
+        case .invalidWeekRange(let start, let end):
+            return "End week \(end) must be on or after start week \(start)"
+        case .invalidDateRange(let start, let end):
+            return "End date \(end) must be on or after start date \(start)"
         }
     }
 }
@@ -177,6 +183,9 @@ struct DoseRuleRecord: Record {
 
     func toDoseRule() throws -> DoseRule {
         guard amount > 0 else { throw BridgeConversionError.invalidAmount(amount) }
+        if let start = startWeek, let end = endWeek, end < start {
+            throw BridgeConversionError.invalidWeekRange(start: start, end: end)
+        }
         return DoseRule(
             id: try uuid(id),
             compoundID: try uuid(compoundID),
@@ -213,11 +222,19 @@ struct ScheduleRecord: Record {
     }
 
     func toSchedule() throws -> Schedule {
-        Schedule(
+        let decodedStart = try BridgeDate.decode(startDate)
+        let decodedEnd = try endDate.map(BridgeDate.decode)
+        if let decodedEnd, decodedEnd < decodedStart {
+            throw BridgeConversionError.invalidDateRange(
+                start: startDate,
+                end: endDate ?? ""
+            )
+        }
+        return Schedule(
             id: try uuid(id),
             name: name,
-            startDate: try BridgeDate.decode(startDate),
-            endDate: try endDate.map(BridgeDate.decode),
+            startDate: decodedStart,
+            endDate: decodedEnd,
             rules: try rules.map { try $0.toDoseRule() },
             status: Schedule.ScheduleStatus(rawValue: status) ?? .draft
         )
