@@ -142,7 +142,8 @@ public actor CycleStore {
         } else {
             ctx.insert(ScheduleEntity(from: schedule))
         }
-        // Omitting rules on an existing schedule must not wipe dose rules; use saveDoseRules to replace them.
+        // Omitting or passing empty rules on an existing schedule preserves dose rules.
+        // To clear or replace rules, call saveDoseRules([], scheduleID) or saveDoseRules(rules, scheduleID).
         if !schedule.rules.isEmpty || existing == nil {
             try replaceDoseRules(schedule.rules, for: scheduleID, in: ctx)
         }
