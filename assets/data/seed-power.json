@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "description": "SIDELOAD ONLY. Do not ship in App Store or TestFlight builds.",
+  "lastUpdated": "2026-06-05",
+  "compounds": []
+}
