@@ -1,6 +1,6 @@
-# CutEngine v2 — Expo Spike
+# CutEngine — Expo
 
-Expo SDK 56 project for CutEngine v2 rewrite evaluation. See project memory:
+Expo SDK 56 rewrite. See project memory:
 `project_cutengine_v2_scope`, `project_pedtracker_appstore_strategy`,
 `reference_foundationmodels_token_opaque_prompting`.
 

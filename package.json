@@ -1,5 +1,5 @@
 {
-  "name": "cutengine-v2",
+  "name": "cutengine",
   "version": "1.0.0",
   "main": "expo-router/entry",
   "dependencies": {
