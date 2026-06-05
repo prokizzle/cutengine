@@ -133,7 +133,8 @@ public actor CycleStore {
         let descriptor = FetchDescriptor<ScheduleEntity>(
             predicate: #Predicate { $0.id == scheduleID }
         )
-        if let existing = try ctx.fetch(descriptor).first {
+        let existing = try ctx.fetch(descriptor).first
+        if let existing {
             existing.name = schedule.name
             existing.startDate = schedule.startDate
             existing.endDate = schedule.endDate
@@ -141,7 +142,10 @@ public actor CycleStore {
         } else {
             ctx.insert(ScheduleEntity(from: schedule))
         }
-        try replaceDoseRules(schedule.rules, for: scheduleID, in: ctx)
+        // Omitting rules on an existing schedule must not wipe dose rules; use saveDoseRules to replace them.
+        if !schedule.rules.isEmpty || existing == nil {
+            try replaceDoseRules(schedule.rules, for: scheduleID, in: ctx)
+        }
         try ctx.save()
     }
 
