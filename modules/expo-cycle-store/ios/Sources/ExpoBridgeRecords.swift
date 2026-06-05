@@ -5,6 +5,7 @@ enum BridgeConversionError: LocalizedError {
     case invalidUUID(String)
     case invalidDate(String)
     case invalidCadence(String)
+    case invalidAmount(Double)
 
     var errorDescription: String? {
         switch self {
@@ -14,6 +15,8 @@ enum BridgeConversionError: LocalizedError {
             return "Invalid ISO8601 date: \(value)"
         case .invalidCadence(let value):
             return "Invalid cadence: \(value)"
+        case .invalidAmount(let value):
+            return "Dose amount must be positive: \(value)"
         }
     }
 }
@@ -89,7 +92,9 @@ struct CadenceRecord: Record {
             guard let n, n > 0 else { throw BridgeConversionError.invalidCadence(type) }
             return .everyNDays(n)
         case "specificDays":
-            guard let days, !days.isEmpty else { throw BridgeConversionError.invalidCadence(type) }
+            guard let days, !days.isEmpty, days.allSatisfy({ (0 ... 6).contains($0) }) else {
+                throw BridgeConversionError.invalidCadence(type)
+            }
             return .specificDays(days)
         case "cyclical":
             guard let daysOn, let daysOff, daysOn > 0, daysOff > 0 else {
@@ -171,7 +176,8 @@ struct DoseRuleRecord: Record {
     }
 
     func toDoseRule() throws -> DoseRule {
-        DoseRule(
+        guard amount > 0 else { throw BridgeConversionError.invalidAmount(amount) }
+        return DoseRule(
             id: try uuid(id),
             compoundID: try uuid(compoundID),
             scheduleID: try uuid(scheduleID),
