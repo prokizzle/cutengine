@@ -25,7 +25,11 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "tsc --noEmit",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "build:prod": "eas build --profile production --platform ios",
+    "build:internal": "eas build --profile internal --platform ios",
+    "build:sideload": "eas build --profile sideload --platform ios",
+    "verify:seed": "bash scripts/verify-seed-strip.sh"
   },
   "private": true
 }
