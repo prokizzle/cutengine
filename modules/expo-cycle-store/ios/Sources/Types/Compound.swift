@@ -43,7 +43,7 @@ public struct Compound: Codable, Sendable, Identifiable, Equatable {
         guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw ValidationError.emptyName
         }
-        guard !defaultUnit.isEmpty else {
+        guard !defaultUnit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw ValidationError.emptyDefaultUnit
         }
         if let halfLife = halfLifeHours, halfLife <= 0 {
