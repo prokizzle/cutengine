@@ -2,5 +2,374 @@
   "version": 1,
   "description": "SIDELOAD ONLY. Do not ship in App Store or TestFlight builds.",
   "lastUpdated": "2026-06-05",
-  "compounds": []
+  "compounds": [
+    {
+      "name": "Testosterone Enanthate",
+      "halfLifeHours": 120,
+      "defaultUnit": "mg",
+      "defaultRoute": "injectable",
+      "category": "AAS",
+      "aliases": ["Test E", "Enanthate"]
+    },
+    {
+      "name": "Testosterone Cypionate",
+      "halfLifeHours": 192,
+      "defaultUnit": "mg",
+      "defaultRoute": "injectable",
+      "category": "AAS",
+      "aliases": ["Test C", "Cyp"]
+    },
+    {
+      "name": "Testosterone Propionate",
+      "halfLifeHours": 48,
+      "defaultUnit": "mg",
+      "defaultRoute": "injectable",
+      "category": "AAS",
+      "aliases": ["Test P", "Prop"]
+    },
+    {
+      "name": "Sustanon 250",
+      "halfLifeHours": 192,
+      "defaultUnit": "mg",
+      "defaultRoute": "injectable",
+      "category": "AAS",
+      "aliases": ["Sust", "Sustanon"]
+    },
+    {
+      "name": "Nandrolone Decanoate",
+      "halfLifeHours": 144,
+      "defaultUnit": "mg",
+      "defaultRoute": "injectable",
+      "category": "AAS",
+      "aliases": ["Deca", "Nandrolone"]
+    },
+    {
+      "name": "Nandrolone Phenylpropionate",
+      "halfLifeHours": 72,
+      "defaultUnit": "mg",
+      "defaultRoute": "injectable",
+      "category": "AAS",
+      "aliases": ["NPP"]
+    },
+    {
+      "name": "Boldenone Undecylenate",
+      "halfLifeHours": 336,
+      "defaultUnit": "mg",
+      "defaultRoute": "injectable",
+      "category": "AAS",
+      "aliases": ["EQ", "Equipoise"]
+    },
+    {
+      "name": "Trenbolone Acetate",
+      "halfLifeHours": 72,
+      "defaultUnit": "mg",
+      "defaultRoute": "injectable",
+      "category": "AAS",
+      "aliases": ["Tren A", "Tren Ace"]
+    },
+    {
+      "name": "Trenbolone Enanthate",
+      "halfLifeHours": 168,
+      "defaultUnit": "mg",
+      "defaultRoute": "injectable",
+      "category": "AAS",
+      "aliases": ["Tren E"]
+    },
+    {
+      "name": "Masteron Propionate",
+      "halfLifeHours": 48,
+      "defaultUnit": "mg",
+      "defaultRoute": "injectable",
+      "category": "AAS",
+      "aliases": ["Mast P", "Drostanolone"]
+    },
+    {
+      "name": "Masteron Enanthate",
+      "halfLifeHours": 168,
+      "defaultUnit": "mg",
+      "defaultRoute": "injectable",
+      "category": "AAS",
+      "aliases": ["Mast E"]
+    },
+    {
+      "name": "Primobolan",
+      "halfLifeHours": 168,
+      "defaultUnit": "mg",
+      "defaultRoute": "injectable",
+      "category": "AAS",
+      "aliases": ["Primo", "Methenolone"]
+    },
+    {
+      "name": "Dianabol",
+      "halfLifeHours": 5,
+      "defaultUnit": "mg",
+      "defaultRoute": "oral",
+      "category": "AAS",
+      "aliases": ["DBol", "Methandrostenolone"]
+    },
+    {
+      "name": "Anadrol",
+      "halfLifeHours": 9,
+      "defaultUnit": "mg",
+      "defaultRoute": "oral",
+      "category": "AAS",
+      "aliases": ["Abomb", "Oxymetholone", "Drol"]
+    },
+    {
+      "name": "Winstrol",
+      "halfLifeHours": 9,
+      "defaultUnit": "mg",
+      "defaultRoute": "oral",
+      "category": "AAS",
+      "aliases": ["Winny", "Stanozolol"]
+    },
+    {
+      "name": "Turinabol",
+      "halfLifeHours": 16,
+      "defaultUnit": "mg",
+      "defaultRoute": "oral",
+      "category": "AAS",
+      "aliases": ["Tbol"]
+    },
+    {
+      "name": "Superdrol",
+      "halfLifeHours": 8,
+      "defaultUnit": "mg",
+      "defaultRoute": "oral",
+      "category": "AAS",
+      "aliases": ["SDrol", "Methasterone"]
+    },
+    {
+      "name": "Halotestin",
+      "halfLifeHours": 9,
+      "defaultUnit": "mg",
+      "defaultRoute": "oral",
+      "category": "AAS",
+      "aliases": ["Halo", "Fluoxymesterone"]
+    },
+    {
+      "name": "Proviron",
+      "halfLifeHours": 12,
+      "defaultUnit": "mg",
+      "defaultRoute": "oral",
+      "category": "AAS",
+      "aliases": ["Mesterolone"]
+    },
+    {
+      "name": "Ostarine",
+      "halfLifeHours": 24,
+      "defaultUnit": "mg",
+      "defaultRoute": "oral",
+      "category": "SARM",
+      "aliases": ["MK-2866", "Osta"]
+    },
+    {
+      "name": "Ligandrol",
+      "halfLifeHours": 30,
+      "defaultUnit": "mg",
+      "defaultRoute": "oral",
+      "category": "SARM",
+      "aliases": ["LGD-4033", "LGD"]
+    },
+    {
+      "name": "RAD-140",
+      "halfLifeHours": 60,
+      "defaultUnit": "mg",
+      "defaultRoute": "oral",
+      "category": "SARM",
+      "aliases": ["Testolone"]
+    },
+    {
+      "name": "YK-11",
+      "halfLifeHours": 12,
+      "defaultUnit": "mg",
+      "defaultRoute": "oral",
+      "category": "SARM",
+      "aliases": []
+    },
+    {
+      "name": "Cardarine",
+      "halfLifeHours": 20,
+      "defaultUnit": "mg",
+      "defaultRoute": "oral",
+      "category": "PPAR",
+      "aliases": ["GW-501516", "GW"]
+    },
+    {
+      "name": "Ibutamoren",
+      "halfLifeHours": 24,
+      "defaultUnit": "mg",
+      "defaultRoute": "oral",
+      "category": "Peptide",
+      "aliases": ["MK-677"]
+    },
+    {
+      "name": "Arimidex",
+      "halfLifeHours": 48,
+      "defaultUnit": "mg",
+      "defaultRoute": "oral",
+      "category": "AI",
+      "aliases": ["Anastrozole", "Adex"]
+    },
+    {
+      "name": "Aromasin",
+      "halfLifeHours": 27,
+      "defaultUnit": "mg",
+      "defaultRoute": "oral",
+      "category": "AI",
+      "aliases": ["Exemestane", "Asin"]
+    },
+    {
+      "name": "Letrozole",
+      "halfLifeHours": 96,
+      "defaultUnit": "mg",
+      "defaultRoute": "oral",
+      "category": "AI",
+      "aliases": ["Letro", "Femara"]
+    },
+    {
+      "name": "Nolvadex",
+      "halfLifeHours": 168,
+      "defaultUnit": "mg",
+      "defaultRoute": "oral",
+      "category": "SERM",
+      "aliases": ["Tamoxifen", "Nolva"]
+    },
+    {
+      "name": "Clomid",
+      "halfLifeHours": 120,
+      "defaultUnit": "mg",
+      "defaultRoute": "oral",
+      "category": "SERM",
+      "aliases": ["Clomiphene"]
+    },
+    {
+      "name": "Raloxifene",
+      "halfLifeHours": 28,
+      "defaultUnit": "mg",
+      "defaultRoute": "oral",
+      "category": "SERM",
+      "aliases": ["Ralox"]
+    },
+    {
+      "name": "hCG",
+      "halfLifeHours": 36,
+      "defaultUnit": "IU",
+      "defaultRoute": "injectable",
+      "category": "Peptide",
+      "aliases": ["Human Chorionic Gonadotropin"]
+    },
+    {
+      "name": "hGH",
+      "halfLifeHours": 4,
+      "defaultUnit": "IU",
+      "defaultRoute": "injectable",
+      "category": "Peptide",
+      "aliases": ["Human Growth Hormone", "Somatropin"]
+    },
+    {
+      "name": "BPC-157",
+      "halfLifeHours": 4,
+      "defaultUnit": "mcg",
+      "defaultRoute": "injectable",
+      "category": "Peptide",
+      "aliases": ["Body Protection Compound"]
+    },
+    {
+      "name": "TB-500",
+      "halfLifeHours": 48,
+      "defaultUnit": "mg",
+      "defaultRoute": "injectable",
+      "category": "Peptide",
+      "aliases": ["Thymosin Beta-4"]
+    },
+    {
+      "name": "Semaglutide",
+      "halfLifeHours": 168,
+      "defaultUnit": "mg",
+      "defaultRoute": "injectable",
+      "category": "GLP-1",
+      "aliases": ["Ozempic", "Wegovy"]
+    },
+    {
+      "name": "Tirzepatide",
+      "halfLifeHours": 120,
+      "defaultUnit": "mg",
+      "defaultRoute": "injectable",
+      "category": "GLP-1",
+      "aliases": ["Mounjaro", "Zepbound"]
+    },
+    {
+      "name": "Clenbuterol",
+      "halfLifeHours": 36,
+      "defaultUnit": "mcg",
+      "defaultRoute": "oral",
+      "category": "Thermogenic",
+      "aliases": ["Clen"]
+    },
+    {
+      "name": "T3",
+      "halfLifeHours": 24,
+      "defaultUnit": "mcg",
+      "defaultRoute": "oral",
+      "category": "Thyroid",
+      "aliases": ["Liothyronine", "Cytomel"]
+    },
+    {
+      "name": "T4",
+      "halfLifeHours": 168,
+      "defaultUnit": "mcg",
+      "defaultRoute": "oral",
+      "category": "Thyroid",
+      "aliases": ["Levothyroxine", "Synthroid"]
+    },
+    {
+      "name": "Cabergoline",
+      "halfLifeHours": 72,
+      "defaultUnit": "mg",
+      "defaultRoute": "oral",
+      "category": "Prolactin Inhibitor",
+      "aliases": ["Caber", "Dostinex"]
+    },
+    {
+      "name": "Pramipexole",
+      "halfLifeHours": 8,
+      "defaultUnit": "mg",
+      "defaultRoute": "oral",
+      "category": "Prolactin Inhibitor",
+      "aliases": ["Prami", "Mirapex"]
+    },
+    {
+      "name": "Finasteride",
+      "halfLifeHours": 8,
+      "defaultUnit": "mg",
+      "defaultRoute": "oral",
+      "category": "5AR Inhibitor",
+      "aliases": ["Fin", "Propecia"]
+    },
+    {
+      "name": "Dutasteride",
+      "halfLifeHours": 720,
+      "defaultUnit": "mg",
+      "defaultRoute": "oral",
+      "category": "5AR Inhibitor",
+      "aliases": ["Duta", "Avodart"]
+    },
+    {
+      "name": "Tadalafil",
+      "halfLifeHours": 18,
+      "defaultUnit": "mg",
+      "defaultRoute": "oral",
+      "category": "PDE5 Inhibitor",
+      "aliases": ["Cialis"]
+    },
+    {
+      "name": "Sildenafil",
+      "halfLifeHours": 4,
+      "defaultUnit": "mg",
+      "defaultRoute": "oral",
+      "category": "PDE5 Inhibitor",
+      "aliases": ["Viagra"]
+    }
+  ]
 }
