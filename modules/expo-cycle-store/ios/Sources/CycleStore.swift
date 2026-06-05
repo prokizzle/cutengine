@@ -191,7 +191,7 @@ public actor CycleStore {
             predicate: #Predicate { $0.scheduleID == targetScheduleID },
             sortBy: [SortDescriptor(\.sortOrder)]
         )
-        return ctx.fetch(descriptor).map { $0.toStruct }
+        return try ctx.fetch(descriptor).map { $0.toStruct }
     }
 
     public func saveMealRule(_ rule: MealRule) throws {
