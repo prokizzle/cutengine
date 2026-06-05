@@ -176,6 +176,7 @@ public actor CycleStore {
         for entity in try ctx.fetch(existingDescriptor) {
             ctx.delete(entity)
         }
+        try ctx.save()
         for var rule in rules {
             rule.scheduleID = targetScheduleID
             ctx.insert(DoseRuleEntity(from: rule))
