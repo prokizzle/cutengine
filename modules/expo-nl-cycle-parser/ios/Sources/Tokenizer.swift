@@ -26,8 +26,14 @@ public enum Tokenizer {
                       options: .caseInsensitive,
                       range: searchStart ..< text.endIndex
                   ) {
+                let startOffset = text.distance(from: text.startIndex, to: range.lowerBound)
                 text.replaceSubrange(range, with: token)
-                searchStart = text.index(range.lowerBound, offsetBy: token.count, limitedBy: text.endIndex) ?? text.endIndex
+                let nextOffset = startOffset + token.count
+                searchStart = text.index(
+                    text.startIndex,
+                    offsetBy: nextOffset,
+                    limitedBy: text.endIndex
+                ) ?? text.endIndex
                 replaced = true
             }
             if replaced {
