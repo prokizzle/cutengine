@@ -32,10 +32,12 @@ export default function TodayScreen() {
   const [weightInput, setWeightInput] = useState("");
 
   useEffect(() => {
-    initHealthKit().then((ok) => {
-      setHkReady(ok);
-      if (ok) readLatestWeight().then(setHkWeight);
-    });
+    initHealthKit()
+      .then((ok) => {
+        setHkReady(ok);
+        if (ok) readLatestWeight().then(setHkWeight).catch(console.error);
+      })
+      .catch(console.error);
   }, []);
 
   const handleLogWeight = async () => {
