@@ -43,7 +43,7 @@ public actor NLCycleParser {
         #endif
 
         // Fall back to deterministic parser
-        var parsed = DeterministicParser.parse(tokenized)
+        var parsed = DeterministicParser.parse(tokenized, tokenMap: tokenMap)
         let resolvedRules = Tokenizer.resolve(rules: parsed.rules, tokenMap: tokenMap)
         return (
             ParseResult(
