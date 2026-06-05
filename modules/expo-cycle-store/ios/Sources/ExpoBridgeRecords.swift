@@ -8,6 +8,9 @@ enum BridgeConversionError: LocalizedError {
     case invalidAmount(Double)
     case invalidWeekRange(start: Int, end: Int)
     case invalidDateRange(start: String, end: String)
+    case invalidName(String)
+    case invalidDefaultUnit(String)
+    case invalidHalfLife(Double)
 
     var errorDescription: String? {
         switch self {
@@ -23,6 +26,12 @@ enum BridgeConversionError: LocalizedError {
             return "End week \(end) must be on or after start week \(start)"
         case .invalidDateRange(let start, let end):
             return "End date \(end) must be on or after start date \(start)"
+        case .invalidName(let value):
+            return "Compound name cannot be empty: \(value)"
+        case .invalidDefaultUnit(let value):
+            return "Default unit cannot be empty: \(value)"
+        case .invalidHalfLife(let value):
+            return "Half-life must be positive: \(value)"
         }
     }
 }
@@ -140,7 +149,12 @@ struct CompoundRecord: Record {
     }
 
     func toCompound() throws -> Compound {
-        Compound(
+        guard !name.isEmpty else { throw BridgeConversionError.invalidName(name) }
+        guard !defaultUnit.isEmpty else { throw BridgeConversionError.invalidDefaultUnit(defaultUnit) }
+        if let halfLife = halfLifeHours, halfLife <= 0 {
+            throw BridgeConversionError.invalidHalfLife(halfLife)
+        }
+        return try Compound(
             id: try uuid(id),
             name: name,
             halfLifeHours: halfLifeHours,
@@ -186,7 +200,7 @@ struct DoseRuleRecord: Record {
         if let start = startWeek, let end = endWeek, end < start {
             throw BridgeConversionError.invalidWeekRange(start: start, end: end)
         }
-        return DoseRule(
+        return try DoseRule(
             id: try uuid(id),
             compoundID: try uuid(compoundID),
             scheduleID: try uuid(scheduleID),
@@ -230,7 +244,7 @@ struct ScheduleRecord: Record {
                 end: endDate ?? ""
             )
         }
-        return Schedule(
+        return try Schedule(
             id: try uuid(id),
             name: name,
             startDate: decodedStart,
