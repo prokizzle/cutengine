@@ -7,37 +7,54 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-BANNED_SOURCE=(
-    "tren\b" "anavar" "nandrolone" "sarm\b" "dianabol" "stanozolol"
-    "trenbolone" "masteron" "primobolan" "winstrol" "deca\b"
+# Single-word terms use word-boundary grep to avoid false positives
+# (e.g. "deca" matching "decimal", "sarm" matching "sarmatian").
+BANNED_WORDS=(
+    "tren" "anavar" "nandrolone" "sarm" "dianabol" "stanozolol"
+    "trenbolone" "masteron" "primobolan" "winstrol" "deca"
     "equipoise" "halotestin" "anadrol" "superdrol" "clenbuterol"
     "arimidex" "aromasin" "letrozole" "nolvadex" "clomid"
-    "AAS" "PED\b" "steroid" "anabolic"
-    "testosterone enanthate" "testosterone cypionate"
+    "AAS" "PED" "steroid" "anabolic"
 )
 
-SKIP_DIRS="node_modules|.git|.build|DerivedData|ios/Pods|android/.gradle"
-SKIP_FILES="seed-power.json|pre-submit-check.sh|verify-seed-strip.sh"
+# Multi-word phrases checked via fixed-string (-F) to handle spaces.
+BANNED_PHRASES=(
+    "testosterone enanthate"
+    "testosterone cypionate"
+)
 
 echo "=== Pre-submit safety check ==="
 echo ""
 
 FOUND=0
 
-# Scan source files for banned terms
 echo "Scanning source for banned terms..."
 while IFS= read -r -d '' file; do
-    case "$file" in
-        *"$SKIP_DIRS"*|*"$SKIP_FILES"*) continue ;;
-    esac
-
-    for term in "${BANNED_SOURCE[@]}"; do
+    for term in "${BANNED_WORDS[@]}"; do
         if grep -qiE "\\b${term}\\b" "$file" 2>/dev/null; then
             echo "  FAIL: '$term' found in $file"
             FOUND=$((FOUND + 1))
         fi
     done
-done < <(find . -type f \( -name "*.swift" -o -name "*.ts" -o -name "*.tsx" -o -name "*.json" -o -name "*.md" \) -print0)
+    for phrase in "${BANNED_PHRASES[@]}"; do
+        if grep -qiF "$phrase" "$file" 2>/dev/null; then
+            echo "  FAIL: '$phrase' found in $file"
+            FOUND=$((FOUND + 1))
+        fi
+    done
+done < <(
+    find . -type f \( -name "*.swift" -o -name "*.ts" -o -name "*.tsx" -o -name "*.json" -o -name "*.md" \) \
+        -not -path './node_modules/*' \
+        -not -path './.git/*' \
+        -not -path './.build/*' \
+        -not -path './DerivedData/*' \
+        -not -path './ios/Pods/*' \
+        -not -path './android/.gradle/*' \
+        -not -name 'seed-power.json' \
+        -not -name 'pre-submit-check.sh' \
+        -not -name 'verify-seed-strip.sh' \
+        -print0
+)
 
 # Check seed JSON is excluded from production bundle
 if grep -q '"APP_VARIANT"' app.config.ts 2>/dev/null; then
