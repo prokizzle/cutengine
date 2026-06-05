@@ -27,12 +27,11 @@ public actor NLCycleParser {
 
         // Try LLM first
         #if canImport(FoundationModels)
-        if let llmResult = await parseWithLLM(tokenized) {
+        if let llmResult = await parseWithLLM(tokenized), !llmResult.rules.isEmpty {
             let resolved = Tokenizer.resolve(rules: llmResult.rules, tokenMap: tokenMap)
-            var finalResult = llmResult
             return (
                 ParseResult(
-                    scheduleName: finalResult.scheduleName,
+                    scheduleName: llmResult.scheduleName,
                     rules: resolved,
                     tokenMap: tokenMap
                 ),
@@ -64,12 +63,9 @@ public actor NLCycleParser {
             // iOS 26+ only — caller must guard availability.
             guard #available(iOS 26.0, *) else { return nil }
 
-            let session = try await LanguageModelSession(
-                modelKind: .onDevice,
-                systemPrompt: Self.systemPrompt
-            )
-            let response = try await session.generate(prompt: prompt)
-            return try decodeLLMResponse(response)
+            let session = LanguageModelSession(instructions: Self.systemPrompt)
+            let response = try await session.respond(to: prompt)
+            return try decodeLLMResponse(response.content)
         } catch {
             return nil
         }
@@ -113,6 +109,20 @@ public actor NLCycleParser {
         """
     }
 
+    private func decodeIntArray(_ value: Any?) -> [Int]? {
+        guard let array = value as? [Any] else { return nil }
+        let ints = array.compactMap { element -> Int? in
+            if let number = element as? NSNumber {
+                return number.intValue
+            }
+            if let int = element as? Int {
+                return int
+            }
+            return nil
+        }
+        return ints.isEmpty ? nil : ints
+    }
+
     private func decodeLLMResponse(_ response: String) throws -> ParseResult? {
         // Extract JSON from LLM response (may contain markdown fences)
         let jsonStr = response
@@ -132,7 +142,7 @@ public actor NLCycleParser {
                     token: token,
                     amountMg: r["amountMg"] as? Double,
                     cadenceText: r["cadenceText"] as? String ?? "",
-                    daysOfWeek: r["daysOfWeek"] as? [Int],
+                    daysOfWeek: decodeIntArray(r["daysOfWeek"]),
                     startWeek: r["startWeek"] as? Int,
                     endWeek: r["endWeek"] as? Int,
                     timeOfDay: r["timeOfDay"] as? String
