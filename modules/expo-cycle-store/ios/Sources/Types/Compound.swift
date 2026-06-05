@@ -44,3 +44,33 @@ public struct Compound: Codable, Sendable, Identifiable, Equatable {
         self.preSeeded = preSeeded
     }
 }
+
+extension Compound {
+    private enum CodingKeys: String, CodingKey {
+        case id, name, halfLifeHours, defaultUnit, defaultRoute, isUserCreated, preSeeded
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            id: try container.decode(UUID.self, forKey: .id),
+            name: try container.decode(String.self, forKey: .name),
+            halfLifeHours: try container.decodeIfPresent(Double.self, forKey: .halfLifeHours),
+            defaultUnit: try container.decode(String.self, forKey: .defaultUnit),
+            defaultRoute: try container.decode(Route.self, forKey: .defaultRoute),
+            isUserCreated: try container.decode(Bool.self, forKey: .isUserCreated),
+            preSeeded: try container.decode(Bool.self, forKey: .preSeeded)
+        )
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encodeIfPresent(halfLifeHours, forKey: .halfLifeHours)
+        try container.encode(defaultUnit, forKey: .defaultUnit)
+        try container.encode(defaultRoute, forKey: .defaultRoute)
+        try container.encode(isUserCreated, forKey: .isUserCreated)
+        try container.encode(preSeeded, forKey: .preSeeded)
+    }
+}

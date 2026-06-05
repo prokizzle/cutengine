@@ -84,16 +84,46 @@ extension DoseRule.Cadence: Codable {
         case "daily":
             self = .daily
         case "everyNDays":
-            self = .everyNDays(try container.decode(Int.self, forKey: .n))
+            let n = try container.decode(Int.self, forKey: .n)
+            guard n > 0 else {
+                throw DecodingError.dataCorruptedError(
+                    forKey: .n,
+                    in: container,
+                    debugDescription: "Day interval must be positive"
+                )
+            }
+            self = .everyNDays(n)
         case "specificDays":
-            self = .specificDays(try container.decode([Int].self, forKey: .days))
+            let days = try container.decode([Int].self, forKey: .days)
+            guard !days.isEmpty, days.allSatisfy({ (0 ... 6).contains($0) }) else {
+                throw DecodingError.dataCorruptedError(
+                    forKey: .days,
+                    in: container,
+                    debugDescription: "Days must be non-empty and in 0-6"
+                )
+            }
+            self = .specificDays(days)
         case "cyclical":
-            self = .cyclical(
-                daysOn: try container.decode(Int.self, forKey: .daysOn),
-                daysOff: try container.decode(Int.self, forKey: .daysOff)
-            )
+            let daysOn = try container.decode(Int.self, forKey: .daysOn)
+            let daysOff = try container.decode(Int.self, forKey: .daysOff)
+            guard daysOn > 0, daysOff > 0 else {
+                throw DecodingError.dataCorruptedError(
+                    forKey: .daysOn,
+                    in: container,
+                    debugDescription: "Cycle days must be positive"
+                )
+            }
+            self = .cyclical(daysOn: daysOn, daysOff: daysOff)
         case "everyNHours":
-            self = .everyNHours(try container.decode(Int.self, forKey: .n))
+            let n = try container.decode(Int.self, forKey: .n)
+            guard n > 0 else {
+                throw DecodingError.dataCorruptedError(
+                    forKey: .n,
+                    in: container,
+                    debugDescription: "Hour interval must be positive"
+                )
+            }
+            self = .everyNHours(n)
         case "asNeeded":
             self = .asNeeded
         default:
@@ -163,5 +193,72 @@ public struct Schedule: Codable, Sendable, Identifiable, Equatable {
         self.endDate = endDate
         self.rules = rules
         self.status = status
+    }
+}
+
+extension DoseRule {
+    private enum CodingKeys: String, CodingKey {
+        case id, compoundID, scheduleID, amount, unit, cadence
+        case timeOfDay, startWeek, endWeek, sortOrder, notes
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            id: try container.decode(UUID.self, forKey: .id),
+            compoundID: try container.decode(UUID.self, forKey: .compoundID),
+            scheduleID: try container.decode(UUID.self, forKey: .scheduleID),
+            amount: try container.decode(Double.self, forKey: .amount),
+            unit: try container.decode(String.self, forKey: .unit),
+            cadence: try container.decode(Cadence.self, forKey: .cadence),
+            timeOfDay: try container.decodeIfPresent(String.self, forKey: .timeOfDay),
+            startWeek: try container.decodeIfPresent(Int.self, forKey: .startWeek),
+            endWeek: try container.decodeIfPresent(Int.self, forKey: .endWeek),
+            sortOrder: try container.decode(Int.self, forKey: .sortOrder),
+            notes: try container.decodeIfPresent(String.self, forKey: .notes)
+        )
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(compoundID, forKey: .compoundID)
+        try container.encode(scheduleID, forKey: .scheduleID)
+        try container.encode(amount, forKey: .amount)
+        try container.encode(unit, forKey: .unit)
+        try container.encode(cadence, forKey: .cadence)
+        try container.encodeIfPresent(timeOfDay, forKey: .timeOfDay)
+        try container.encodeIfPresent(startWeek, forKey: .startWeek)
+        try container.encodeIfPresent(endWeek, forKey: .endWeek)
+        try container.encode(sortOrder, forKey: .sortOrder)
+        try container.encodeIfPresent(notes, forKey: .notes)
+    }
+}
+
+extension Schedule {
+    private enum CodingKeys: String, CodingKey {
+        case id, name, startDate, endDate, rules, status
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            id: try container.decode(UUID.self, forKey: .id),
+            name: try container.decode(String.self, forKey: .name),
+            startDate: try container.decode(Date.self, forKey: .startDate),
+            endDate: try container.decodeIfPresent(Date.self, forKey: .endDate),
+            rules: try container.decode([DoseRule].self, forKey: .rules),
+            status: try container.decode(ScheduleStatus.self, forKey: .status)
+        )
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encode(startDate, forKey: .startDate)
+        try container.encodeIfPresent(endDate, forKey: .endDate)
+        try container.encode(rules, forKey: .rules)
+        try container.encode(status, forKey: .status)
     }
 }
