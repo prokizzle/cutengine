@@ -218,10 +218,16 @@ struct DoseRuleRecord: Record {
         if let start = startWeek, let end = endWeek, end < start {
             throw BridgeConversionError.invalidWeekRange(start: start, end: end)
         }
+        let parsedScheduleID: UUID
+        if scheduleID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            parsedScheduleID = UUID()
+        } else {
+            parsedScheduleID = try uuid(scheduleID)
+        }
         return try DoseRule(
             id: try uuid(id),
             compoundID: try uuid(compoundID),
-            scheduleID: try uuid(scheduleID),
+            scheduleID: parsedScheduleID,
             amount: amount,
             unit: unit,
             cadence: try cadence.toCadence(),
