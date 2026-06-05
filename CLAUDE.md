@@ -60,8 +60,11 @@ bun run lint                                           # Type check
 3. Install via AltStore / Sideloadly / Feather
 4. Bundle ID: `com.feelingmindful.cutengine.power` (separate from App Store listing)
 
-The sideload build includes `assets/data/seed-power.json` (46 compounds).
-The production build strips this file via `plugins/withSeedJson.ts`.
+The sideload build bundles `assets/data/seed-power.json` (46 compounds) via
+`plugins/withSeedJson.ts` (`APP_VARIANT=sideload`). Production/internal builds
+set `assetBundlePatterns` to `[]` so the seed file is never included — no
+negated globs. Run `./scripts/verify-seed-strip.sh` on release `.app` bundles
+and `./scripts/pre-submit-check.sh` before submit.
 
 ## Architecture
 
