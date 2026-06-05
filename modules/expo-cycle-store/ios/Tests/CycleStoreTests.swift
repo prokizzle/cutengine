@@ -5,44 +5,42 @@ import Testing
 @Suite("CycleStore")
 struct CycleStoreTests {
 
-    init() async throws {
-        // Use in-memory store for tests — no App Group needed
-        try await CycleStore.shared.initialize(useInMemory: true)
-    }
-
     // MARK: - Compounds
 
     @Test("save and retrieve compounds")
     func compoundCRUD() async throws {
+        let store = try CycleStore.inMemory()
+
         let compound = Compound(
             name: "Creatine",
             defaultUnit: "g",
             defaultRoute: .oral
         )
-        try await CycleStore.shared.saveCompound(compound)
+        try await store.saveCompound(compound)
 
-        let all = try await CycleStore.shared.allCompounds()
+        let all = try await store.allCompounds()
         #expect(all.count == 1)
         #expect(all[0].name == "Creatine")
         #expect(all[0].defaultUnit == "g")
 
-        // Delete
-        try await CycleStore.shared.deleteCompound(id: compound.id)
-        let after = try await CycleStore.shared.allCompounds()
+        try await store.deleteCompound(id: compound.id)
+        let after = try await store.allCompounds()
         #expect(after.isEmpty)
     }
 
     @Test("update existing compound")
     func compoundUpdate() async throws {
+        let store = try CycleStore.inMemory()
+
         let compound = Compound(name: "Test Compound", defaultUnit: "mg")
-        try await CycleStore.shared.saveCompound(compound)
+        try await store.saveCompound(compound)
 
         var updated = compound
         updated.name = "Updated Name"
         updated.defaultUnit = "g"
-        try await CycleStore.shared.saveCompound(updated)
+        try await store.saveCompound(updated)
 
-        let all = try await CycleStore.shared.allCompounds()
+        let all = try await store.allCompounds()
         #expect(all.count == 1)
         #expect(all[0].name == "Updated Name")
         #expect(all[0].defaultUnit == "g")
@@ -52,8 +50,10 @@ struct CycleStoreTests {
 
     @Test("save and retrieve schedule with dose rules")
     func scheduleWithRules() async throws {
+        let store = try CycleStore.inMemory()
+
         let schedule = Schedule(name: "Test Cycle", startDate: Date())
-        try await CycleStore.shared.saveSchedule(schedule)
+        try await store.saveSchedule(schedule)
 
         let rules = [
             DoseRule(
@@ -75,9 +75,9 @@ struct CycleStoreTests {
                 sortOrder: 1
             ),
         ]
-        try await CycleStore.shared.saveDoseRules(rules, for: schedule.id)
+        try await store.saveDoseRules(rules, for: schedule.id)
 
-        let schedules = try await CycleStore.shared.allSchedules()
+        let schedules = try await store.allSchedules()
         #expect(schedules.count == 1)
         #expect(schedules[0].rules.count == 2)
         #expect(schedules[0].rules[0].amount == 500)
@@ -93,9 +93,11 @@ struct CycleStoreTests {
 
     @Test("save and retrieve meal rules")
     func mealRuleCRUD() async throws {
+        let store = try CycleStore.inMemory()
+
         let scheduleID = UUID()
         let schedule = Schedule(id: scheduleID, name: "Meal Plan", startDate: Date())
-        try await CycleStore.shared.saveSchedule(schedule)
+        try await store.saveSchedule(schedule)
 
         let mealRule = MealRule(
             scheduleID: scheduleID,
@@ -107,9 +109,9 @@ struct CycleStoreTests {
             ],
             sortOrder: 0
         )
-        try await CycleStore.shared.saveMealRule(mealRule)
+        try await store.saveMealRule(mealRule)
 
-        let rules = try await CycleStore.shared.mealRules(for: scheduleID)
+        let rules = try await store.mealRules(for: scheduleID)
         #expect(rules.count == 1)
         #expect(rules[0].label == "Breakfast")
         #expect(rules[0].items.count == 2)
