@@ -1,5 +1,9 @@
 import ExpoModulesCore
 
+private func bridgeOptional<T>(_ value: T?) -> Any {
+    value.map { $0 as Any } ?? NSNull()
+}
+
 /// Expo Module wrapping NLCycleParser for JS consumption.
 ///
 /// JS API:
@@ -12,10 +16,6 @@ import ExpoModulesCore
 /// // result = { scheduleName, rules: [...], tokenMap: {...}, method: "deterministic" | "llm" }
 /// ```
 public class ExpoNLCycleParserModule: Module {
-    private func bridgeOptional<T>(_ value: T?) -> Any {
-        value.map { $0 as Any } ?? NSNull()
-    }
-
     public func definition() -> ModuleDefinition {
         Name("ExpoNLCycleParser")
 
