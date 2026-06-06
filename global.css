@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* Design tokens ported from DesignSystem Swift package */
 /* Satoshi font loaded via useFonts in app layout */
