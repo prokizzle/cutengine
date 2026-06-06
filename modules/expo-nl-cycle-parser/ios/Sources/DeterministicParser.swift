@@ -39,7 +39,9 @@ public enum DeterministicParser {
             let startWeek = match.6.flatMap { Int($0) }
             let endWeek = match.7.flatMap { Int($0) }
 
-            let cadenceText = days.isEmpty ? "\(amount ?? 0)\(unit)/wk" : "\(amount ?? 0)\(unit)/wk \(daysStr)"
+            let cadenceText = days.isEmpty
+                ? "\(formatAmount(amount ?? 0))\(unit)/wk"
+                : "\(formatAmount(amount ?? 0))\(unit)/wk \(daysStr)"
             rules.append(ParsedRule(
                 token: token,
                 amountMg: amount.map { normalizeToMg($0, unit: unit) },
@@ -131,5 +133,10 @@ public enum DeterministicParser {
         case "mcg": return amount / 1000
         default: return amount // mg, IU, ml pass through
         }
+    }
+
+    /// Whole numbers render as "500"; fractional doses keep decimals (e.g. "0.5").
+    private static func formatAmount(_ amount: Double) -> String {
+        String(format: "%g", amount)
     }
 }
