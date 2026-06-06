@@ -8,14 +8,14 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { TimelineHero } from "@/components/timeline/TimelineHero";
-import { MacroTargets } from "@/components/timeline/MacroTargets";
-import { TimelineSpine } from "@/components/timeline/TimelineSpine";
+import { TimelineHero } from "../../components/timeline/TimelineHero";
+import { MacroTargets } from "../../components/timeline/MacroTargets";
+import { TimelineSpine } from "../../components/timeline/TimelineSpine";
 import {
   initHealthKit,
   readLatestWeight,
   writeWeight,
-} from "@/lib/healthKit";
+} from "../../lib/healthKit";
 
 const MOCK_DOSE_EVENTS = [
   { id: "1", name: "Creatine", dose: 5, unit: "g", timeOfDay: "morning" as const, sortOrder: 0, taken: true },
