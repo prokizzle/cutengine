@@ -28,8 +28,8 @@ public enum DeterministicParser {
         // Try each pattern; remove matched substrings to avoid double-matching
         var remaining = input
 
-        // Extract dose lines
-        for match in remaining.matches(of: doseLinePattern) {
+        // Extract dose lines (firstMatch loop — safe while mutating remaining)
+        while let match = remaining.firstMatch(of: doseLinePattern) {
             let token = String(match.1)
             let amount = Double(match.2)
             let unit = String(match.3)
@@ -47,10 +47,7 @@ public enum DeterministicParser {
                 startWeek: startWeek,
                 endWeek: endWeek
             ))
-            // Remove matched portion
-            if let range = remaining.range(of: match.0) {
-                remaining.replaceSubrange(range, with: "")
-            }
+            remaining.replaceSubrange(match.range, with: "")
         }
 
         // Extract ED patterns
