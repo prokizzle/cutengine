@@ -205,7 +205,7 @@ public actor CycleStore {
             }
         }
 
-        for entity in existing where !keptIDs.contains(entity.id) {
+        for entity in existingByID.values where !keptIDs.contains(entity.id) {
             ctx.delete(entity)
         }
     }

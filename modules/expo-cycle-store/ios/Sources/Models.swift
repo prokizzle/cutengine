@@ -93,11 +93,9 @@ public final class DoseRuleEntity {
         self.notes = rule.notes
     }
 
-    public var cadence: DoseRule.Cadence {
-        guard let data = cadenceData,
-              let decoded = try? JSONDecoder().decode(DoseRule.Cadence.self, from: data)
-        else { return .daily }
-        return decoded
+    private func decodedCadence() throws -> DoseRule.Cadence {
+        guard let data = cadenceData else { return .daily }
+        return try JSONDecoder().decode(DoseRule.Cadence.self, from: data)
     }
 
     public func toStruct() throws -> DoseRule {
@@ -107,7 +105,7 @@ public final class DoseRuleEntity {
             scheduleID: scheduleID,
             amount: amount,
             unit: unit,
-            cadence: cadence,
+            cadence: try decodedCadence(),
             timeOfDay: timeOfDay,
             startWeek: startWeek,
             endWeek: endWeek,
