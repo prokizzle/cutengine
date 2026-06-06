@@ -1,5 +1,12 @@
 import { Platform } from "react-native";
-import ExpoHealthKit from "../modules/expo-healthkit/src";
+
+// Local Expo Module — resolved at build time, not by tsc
+const ExpoHealthKit = require("../modules/expo-healthkit/src").default as {
+  requestAuthorization: (read: string[], write: string[]) => Promise<boolean>;
+  saveWeight: (kg: number, date?: Date) => Promise<void>;
+  getLatestWeight: () => Promise<{ valueKg: number } | null>;
+  getActiveEnergyToday: () => Promise<number>;
+};
 
 let initialized = false;
 
