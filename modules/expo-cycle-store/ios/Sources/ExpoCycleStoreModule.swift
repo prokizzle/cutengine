@@ -63,10 +63,3 @@ public class ExpoCycleStoreModule: Module {
         }
     }
 }
-
-private func uuid(_ value: String) throws -> UUID {
-    guard let id = UUID(uuidString: value) else {
-        throw BridgeConversionError.invalidUUID(value)
-    }
-    return id
-}

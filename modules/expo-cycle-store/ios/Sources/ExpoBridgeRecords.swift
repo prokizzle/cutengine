@@ -70,7 +70,7 @@ private enum BridgeDate {
     }
 }
 
-private func uuid(_ value: String) throws -> UUID {
+func uuid(_ value: String) throws -> UUID {
     guard !value.isEmpty else {
         throw BridgeConversionError.invalidUUID(value)
     }
