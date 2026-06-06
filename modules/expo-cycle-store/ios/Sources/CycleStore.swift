@@ -177,7 +177,13 @@ public actor CycleStore {
             predicate: #Predicate { $0.scheduleID == targetScheduleID }
         )
         let existing = try ctx.fetch(existingDescriptor)
-        var existingByID = Dictionary(uniqueKeysWithValues: existing.map { ($0.id, $0) })
+        var existingByID: [UUID: DoseRuleEntity] = [:]
+        for entity in existing {
+            if let duplicate = existingByID[entity.id] {
+                ctx.delete(duplicate)
+            }
+            existingByID[entity.id] = entity
+        }
         var keptIDs = Set<UUID>()
 
         for var rule in rules {
