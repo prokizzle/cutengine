@@ -22,6 +22,12 @@ const config: ExpoConfig = {
         "CutEngine writes your body mass to Apple Health.",
     },
   },
+  android: {
+    adaptiveIcon: {
+      foregroundImage: "./assets/icon.png",
+      backgroundColor: "#1c1c1e",
+    },
+  },
   plugins: [
     "expo-router",
     "@sentry/react-native/expo",
@@ -29,7 +35,6 @@ const config: ExpoConfig = {
   ],
   experiments: {
     typedRoutes: true,
-    reactCanary: true,
   },
   extra: {
     APP_VARIANT: process.env.APP_VARIANT ?? "production",
