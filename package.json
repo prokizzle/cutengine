@@ -5,6 +5,7 @@
   "dependencies": {
     "@sentry/react-native": "^8.13.0",
     "expo": "~56.0.8",
+    "expo-dev-client": "^56.0.19",
     "expo-health": "^0.0.0",
     "expo-router": "^56.2.8",
     "expo-status-bar": "~56.0.4",
