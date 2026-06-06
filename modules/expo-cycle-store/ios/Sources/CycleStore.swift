@@ -219,7 +219,7 @@ public actor CycleStore {
             predicate: #Predicate { $0.scheduleID == targetScheduleID },
             sortBy: [SortDescriptor(\.sortOrder)]
         )
-        return try ctx.fetch(descriptor).map { $0.toStruct }
+        return try ctx.fetch(descriptor).map { try $0.toStruct() }
     }
 
     public func saveMealRule(_ rule: MealRule) throws {
@@ -258,6 +258,8 @@ public enum StoreError: LocalizedError {
     case notInitialized
     case missingCadenceData(ruleID: UUID)
     case invalidCadenceData(ruleID: UUID)
+    case missingItemsData(ruleID: UUID)
+    case invalidItemsData(ruleID: UUID)
 
     public var errorDescription: String? {
         switch self {
@@ -269,6 +271,10 @@ public enum StoreError: LocalizedError {
             "Dose rule \(ruleID) is missing cadence data."
         case .invalidCadenceData(let ruleID):
             "Dose rule \(ruleID) has invalid cadence data."
+        case .missingItemsData(let ruleID):
+            "Meal rule \(ruleID) is missing items data."
+        case .invalidItemsData(let ruleID):
+            "Meal rule \(ruleID) has invalid items data."
         }
     }
 }

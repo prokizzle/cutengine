@@ -140,20 +140,25 @@ public final class MealRuleEntity {
         self.sortOrder = rule.sortOrder
     }
 
-    public var items: [MealItem] {
-        guard let data = itemsData,
-              let decoded = try? JSONDecoder().decode([MealItem].self, from: data)
-        else { return [] }
-        return decoded.sorted { $0.sortOrder < $1.sortOrder }
+    private func decodedItems() throws -> [MealItem] {
+        guard let data = itemsData else {
+            throw StoreError.missingItemsData(ruleID: id)
+        }
+        do {
+            return try JSONDecoder().decode([MealItem].self, from: data)
+                .sorted { $0.sortOrder < $1.sortOrder }
+        } catch {
+            throw StoreError.invalidItemsData(ruleID: id)
+        }
     }
 
-    public var toStruct: MealRule {
-        MealRule(
+    public func toStruct() throws -> MealRule {
+        try MealRule(
             id: id,
             scheduleID: scheduleID,
             label: label,
             time: time,
-            items: items,
+            items: decodedItems(),
             sortOrder: sortOrder
         )
     }
