@@ -28,6 +28,12 @@ const config: ExpoConfig = {
       backgroundColor: "#1c1c1e",
     },
   },
+  updates: {
+    url: "https://u.expo.dev/fc6ac35c-8c91-4d68-a4b0-5a7cfdeb9749",
+  },
+  runtimeVersion: {
+    policy: "appVersion",
+  },
   plugins: [
     "expo-router",
     "@sentry/react-native/expo",
@@ -40,7 +46,7 @@ const config: ExpoConfig = {
     APP_VARIANT: process.env.APP_VARIANT ?? "production",
     seedIncluded: IS_SIDELOAD,
     eas: {
-      projectId: process.env.EAS_PROJECT_ID ?? "",
+      projectId: "fc6ac35c-8c91-4d68-a4b0-5a7cfdeb9749",
     },
   },
 };

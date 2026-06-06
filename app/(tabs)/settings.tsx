@@ -21,6 +21,8 @@ function Row({ label, value, onPress, destructive }: { label: string; value?: st
 function Divider() { return <View className="h-px bg-white/5 mx-4" />; }
 
 export default function SettingsScreen() {
+  const router = useRouter();
+
   return (
     <SafeAreaView className="flex-1 bg-surface-primary">
       <ScrollView className="flex-1" contentContainerStyle={{ paddingTop: 12, paddingBottom: 40 }}>
@@ -35,7 +37,8 @@ export default function SettingsScreen() {
           <Row label="Energy" value="kcal" onPress={() => Alert.alert("TODO")} />
         </Section>
         <Section title="SUBSCRIPTION">
-          <Row label="Manage Subscription" onPress={() => Alert.alert("TODO")} />
+          <Row label="CutEngine Pro" onPress={() => router.push("/paywall")} /><Divider />
+          <Row label="Customer Center" onPress={() => router.push("/customer-center")} />
         </Section>
         <Section title="DATA">
           <Row label="Export Protocol Data" onPress={() => Alert.alert("TODO")} /><Divider />

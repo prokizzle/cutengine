@@ -1,0 +1,115 @@
+{
+  "env": {
+    "APP_ID": "6757690403",
+    "VERSION": "2.0.0",
+    "TF_GROUP_TEAM": "01a7e0ee-fabc-4b84-a0f8-6a3f9cf23664",
+    "TF_GROUP_FRIENDS": "6dda80d6-4268-4b97-b69d-6a9132665f72",
+    "SUBMIT_FOR_REVIEW": "false"
+  },
+  "before_all": "asc auth status",
+  "after_all": "echo 'workflow complete'",
+  "error": "echo 'workflow failed — check step output above'",
+
+  "workflows": {
+    "beta": {
+      "description": "Resolve latest build and distribute to TestFlight groups",
+      "steps": [
+        {
+          "name": "resolve_build",
+          "run": "asc builds info --app $APP_ID --latest --platform IOS --output json",
+          "outputs": {
+            "BUILD_ID": "$.data.id",
+            "BUILD_VERSION": "$.data.attributes.version",
+            "BUILD_STATE": "$.data.attributes.processingState"
+          }
+        },
+        {
+          "name": "add_team",
+          "run": "asc builds add-groups --build-id ${steps.resolve_build.BUILD_ID} --group $TF_GROUP_TEAM --confirm --output json"
+        },
+        {
+          "name": "add_friends",
+          "run": "asc builds add-groups --build-id ${steps.resolve_build.BUILD_ID} --group $TF_GROUP_FRIENDS --confirm --output json"
+        }
+      ]
+    },
+
+    "beta-single": {
+      "description": "Resolve latest build and add to one TestFlight group. Pass GROUP_ID.",
+      "steps": [
+        {
+          "name": "resolve_build",
+          "run": "asc builds info --app $APP_ID --latest --platform IOS --output json",
+          "outputs": {
+            "BUILD_ID": "$.data.id"
+          }
+        },
+        {
+          "name": "add_group",
+          "run": "asc builds add-groups --build-id ${steps.resolve_build.BUILD_ID} --group $GROUP_ID --confirm --output json"
+        }
+      ]
+    },
+
+    "release": {
+      "description": "Validate, stage metadata, and optionally submit an App Store version",
+      "steps": [
+        {
+          "name": "validate",
+          "run": "asc validate --app $APP_ID --version $VERSION --platform IOS --output json"
+        },
+        {
+          "name": "stage",
+          "run": "asc release stage --app $APP_ID --version $VERSION --output json"
+        },
+        {
+          "name": "submit",
+          "if": "SUBMIT_FOR_REVIEW",
+          "run": "asc review submit --app $APP_ID --version $VERSION --confirm --output json"
+        }
+      ]
+    },
+
+    "validate-only": {
+      "description": "Run local pre-submit checks + ASC validation",
+      "steps": [
+        {
+          "name": "local_check",
+          "run": "./scripts/pre-submit-check.sh"
+        },
+        {
+          "name": "asc_validate",
+          "run": "asc validate --app $APP_ID --version $VERSION --platform IOS --output json"
+        }
+      ]
+    },
+
+    "build-status": {
+      "description": "Check processing state of latest build",
+      "steps": [
+        {
+          "name": "latest",
+          "run": "asc builds info --app $APP_ID --latest --platform IOS --output json"
+        }
+      ]
+    },
+
+    "testflight-status": {
+      "description": "Show TestFlight groups and latest build distribution",
+      "steps": [
+        {
+          "name": "groups",
+          "run": "asc testflight groups list --app $APP_ID --output json"
+        },
+        {
+          "name": "latest_build",
+          "run": "asc builds info --app $APP_ID --latest --platform IOS --output json"
+        },
+        {
+          "name": "distribution",
+          "run": "asc testflight distribution view --build-id ${steps.latest_build.BUILD_ID} --output json 2>/dev/null || echo '{\"note\": \"no distribution info yet\"}'"
+        }
+      ]
+    }
+  }
+}

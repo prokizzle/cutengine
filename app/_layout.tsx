@@ -3,7 +3,9 @@ import "../global.css";
 import * as Sentry from "@sentry/react-native";
 import { Stack } from "expo-router";
 import { useEffect } from "react";
-import Purchases from "react-native-purchases";
+import Purchases, { LOG_LEVEL } from "react-native-purchases";
+
+const RC_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_API_KEY;
 
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
@@ -13,16 +15,27 @@ Sentry.init({
 
 export default function RootLayout() {
   useEffect(() => {
-    if (process.env.EXPO_PUBLIC_REVENUECAT_API_KEY) {
-      Purchases.configure({
-        apiKey: process.env.EXPO_PUBLIC_REVENUECAT_API_KEY,
-      });
+    if (!RC_API_KEY) {
+      console.warn("[RevenueCat] EXPO_PUBLIC_REVENUECAT_API_KEY not set");
+      return;
+    }
+    Purchases.configure({ apiKey: RC_API_KEY });
+    if (__DEV__) {
+      Purchases.setLogLevel(LOG_LEVEL.DEBUG);
     }
   }, []);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
+      <Stack.Screen
+        name="paywall"
+        options={{ presentation: "modal", headerShown: false }}
+      />
+      <Stack.Screen
+        name="customer-center"
+        options={{ presentation: "modal", headerShown: true, title: "Customer Center" }}
+      />
     </Stack>
   );
 }
