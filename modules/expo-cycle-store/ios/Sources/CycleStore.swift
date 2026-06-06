@@ -256,6 +256,8 @@ public actor CycleStore {
 public enum StoreError: LocalizedError {
     case appGroupNotFound
     case notInitialized
+    case missingCadenceData(ruleID: UUID)
+    case invalidCadenceData(ruleID: UUID)
 
     public var errorDescription: String? {
         switch self {
@@ -263,6 +265,10 @@ public enum StoreError: LocalizedError {
             "App Group '\(CycleStore.appGroupIdentifier)' not found. Check entitlements."
         case .notInitialized:
             "CycleStore not initialized. Call initialize() first."
+        case .missingCadenceData(let ruleID):
+            "Dose rule \(ruleID) is missing cadence data."
+        case .invalidCadenceData(let ruleID):
+            "Dose rule \(ruleID) has invalid cadence data."
         }
     }
 }

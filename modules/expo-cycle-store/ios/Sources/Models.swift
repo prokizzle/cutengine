@@ -94,8 +94,14 @@ public final class DoseRuleEntity {
     }
 
     private func decodedCadence() throws -> DoseRule.Cadence {
-        guard let data = cadenceData else { return .daily }
-        return try JSONDecoder().decode(DoseRule.Cadence.self, from: data)
+        guard let data = cadenceData else {
+            throw StoreError.missingCadenceData(ruleID: id)
+        }
+        do {
+            return try JSONDecoder().decode(DoseRule.Cadence.self, from: data)
+        } catch {
+            throw StoreError.invalidCadenceData(ruleID: id)
+        }
     }
 
     public func toStruct() throws -> DoseRule {
