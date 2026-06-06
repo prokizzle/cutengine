@@ -133,7 +133,8 @@ public actor CycleStore {
         let descriptor = FetchDescriptor<ScheduleEntity>(
             predicate: #Predicate { $0.id == scheduleID }
         )
-        if let existing = try ctx.fetch(descriptor).first {
+        let existing = try ctx.fetch(descriptor).first
+        if let existing {
             existing.name = schedule.name
             existing.startDate = schedule.startDate
             existing.endDate = schedule.endDate
@@ -141,7 +142,32 @@ public actor CycleStore {
         } else {
             ctx.insert(ScheduleEntity(from: schedule))
         }
-        try replaceDoseRules(schedule.rules, for: scheduleID, in: ctx)
+        // Omitting or passing empty rules on an existing schedule preserves dose rules.
+        // To clear or replace rules, call saveDoseRules([], scheduleID) or saveDoseRules(rules, scheduleID).
+        if !schedule.rules.isEmpty || existing == nil {
+            try replaceDoseRules(schedule.rules, for: scheduleID, in: ctx)
+        }
+        try ctx.save()
+    }
+
+    public func deleteSchedule(id: UUID) throws {
+        let ctx = try modelContext()
+        let scheduleID = id
+        let descriptor = FetchDescriptor<ScheduleEntity>(
+            predicate: #Predicate { $0.id == scheduleID }
+        )
+        guard let entity = try ctx.fetch(descriptor).first else { return }
+
+        try replaceDoseRules([], for: scheduleID, in: ctx)
+
+        let mealDescriptor = FetchDescriptor<MealRuleEntity>(
+            predicate: #Predicate { $0.scheduleID == scheduleID }
+        )
+        for meal in try ctx.fetch(mealDescriptor) {
+            ctx.delete(meal)
+        }
+
+        ctx.delete(entity)
         try ctx.save()
     }
 
