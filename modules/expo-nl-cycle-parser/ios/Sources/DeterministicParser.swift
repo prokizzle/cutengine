@@ -20,6 +20,7 @@ public enum DeterministicParser {
         #/(?:^|,\s*|;\s*|\n|:\s*)\s*(\[tok\d+\])\s*as\s+needed/#
 
     private static let scheduleNamePattern = #/^([^.].+?)(?:\s*:\s*)/#
+    private static let tokenPlaceholderPattern = #/^\[tok\d+\]$/#
 
     public static func parse(_ input: String, tokenMap: [String: String] = [:]) -> ParseResult {
         let name = scheduleName(from: input)
