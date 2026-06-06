@@ -16,6 +16,7 @@ const config: ExpoConfig = {
       ? "com.feelingmindful.cutengine.power"
       : "com.feelingmindful.diet-plan",
     infoPlist: {
+      ITSAppUsesNonExemptEncryption: false,
       NSHealthShareUsageDescription:
         "CutEngine reads your weight, active energy, and body metrics to compute your daily calorie target.",
       NSHealthUpdateUsageDescription:
