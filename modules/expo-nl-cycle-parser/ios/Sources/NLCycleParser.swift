@@ -44,7 +44,11 @@ public actor NLCycleParser {
 
         // Fall back to deterministic parser
         var parsed = DeterministicParser.parse(tokenized, tokenMap: tokenMap)
-        let resolvedRules = Tokenizer.resolve(rules: parsed.rules, tokenMap: tokenMap)
+        let resolvedRules = Tokenizer.resolve(
+            rules: parsed.rules,
+            tokenMap: tokenMap,
+            filterUnknownTokens: false
+        )
         return (
             ParseResult(
                 scheduleName: parsed.scheduleName,

@@ -46,15 +46,19 @@ public enum Tokenizer {
     }
 
     /// Resolves tokens back to compound names in parsed rules.
+    /// When `filterUnknownTokens` is true (LLM path), rules whose token is a
+    /// `[tokN]` placeholder missing from `tokenMap` are dropped as hallucinations.
     public static func resolve(
         rules: [ParsedRule],
-        tokenMap: [String: String]
+        tokenMap: [String: String],
+        filterUnknownTokens: Bool = true
     ) -> [ParsedRule] {
         rules.compactMap { rule in
             let resolvedToken: String
             if let name = tokenMap[rule.token] {
                 resolvedToken = name
-            } else if rule.token.hasPrefix("[tok"), rule.token.hasSuffix("]") {
+            } else if filterUnknownTokens,
+                      rule.token.hasPrefix("[tok"), rule.token.hasSuffix("]") {
                 return nil
             } else {
                 resolvedToken = rule.token
