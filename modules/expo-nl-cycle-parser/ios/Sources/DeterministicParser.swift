@@ -109,7 +109,9 @@ public enum DeterministicParser {
 
     private static func scheduleName(from input: String) -> String? {
         guard let match = input.firstMatch(of: scheduleNamePattern) else { return nil }
-        return String(match.1).trimmingCharacters(in: .whitespaces)
+        let name = String(match.1).trimmingCharacters(in: .whitespaces)
+        guard name.firstMatch(of: tokenPlaceholderPattern) == nil else { return nil }
+        return name
     }
 
     private static func parseWeekdays(_ str: String) -> [Int] {
