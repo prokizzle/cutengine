@@ -10,8 +10,8 @@ private func bridgeOptional<T>(_ value: T?) -> Any {
 /// ```ts
 /// import ExpoNLCycleParser from "expo-nl-cycle-parser";
 /// const result = await ExpoNLCycleParser.parse(
-///   "Test E 500mg/wk split Mon/Thu, Anavar 50mg ED wks 1-6",
-///   ["Test E", "Anavar"]
+///   "Compound A 500mg/wk split Mon/Thu, Compound B 50mg ED wks 1-6",
+///   ["Compound A", "Compound B"]
 /// );
 /// // result = { scheduleName, rules: [...], tokenMap: {...}, method: "deterministic" | "llm" }
 /// ```

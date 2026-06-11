@@ -50,6 +50,10 @@ done < <(
         -not -path './DerivedData/*' \
         -not -path './ios/Pods/*' \
         -not -path './android/.gradle/*' \
+        -not -path './.agents/*' \
+        -not -path './.claude/*' \
+        -not -path './.premium/*' \
+        -not -path './docs/*' \
         -not -name 'seed-power.json' \
         -not -name 'pre-submit-check.sh' \
         -not -name 'verify-seed-strip.sh' \

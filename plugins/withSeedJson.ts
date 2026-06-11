@@ -8,9 +8,9 @@ import type { ConfigPlugin } from "expo/config-plugins";
  *
  * Sideload (APP_VARIANT == "sideload"): bundles seed-power.json only.
  *
- * Verify production build:
- *   strings App.app/App | grep -qiE '\b(tren|anavar|nandrolone)\b'
- * must return empty.
+ * Verify production build: run `scripts/verify-seed-strip.sh path/to/App.app`.
+ * The script greps the binary for the full banned-term list (see
+ * BANNED_WORDS in scripts/pre-submit-check.sh) and must report empty.
  */
 const withSeedJson: ConfigPlugin = (config) => {
   const isSideload = process.env.APP_VARIANT === "sideload";

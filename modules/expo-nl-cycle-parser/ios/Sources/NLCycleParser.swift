@@ -15,7 +15,7 @@ public actor NLCycleParser {
 
     /// Parse a natural-language cycle description into structured rules.
     /// - Parameters:
-    ///   - input: Free-text dosing schedule (e.g. "Test E 500mg/wk split Mon/Thu, Anavar 50mg ED wks 1-6")
+    ///   - input: Free-text dosing schedule (e.g. "Compound A 500mg/wk split Mon/Thu, Compound B 50mg ED wks 1-6")
     ///   - compounds: Known compound names for tokenization. Empty = no tokenization (pass-through).
     /// - Returns: ParseResult with rules and token map.
     public func parse(
