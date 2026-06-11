@@ -12,9 +12,11 @@ const config: ExpoConfig = {
   userInterfaceStyle: "dark",
   ios: {
     supportsTablet: true,
+    appleId: "6757690403",
     bundleIdentifier: IS_SIDELOAD
       ? "com.feelingmindful.cutengine.power"
       : "com.feelingmindful.diet-plan",
+    icon: "./assets/app-icon.icon",
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
       NSHealthShareUsageDescription:
@@ -24,9 +26,11 @@ const config: ExpoConfig = {
     },
   },
   android: {
+    package: "com.feelingmindful.cutengine",
     adaptiveIcon: {
-      foregroundImage: "./assets/icon.png",
-      backgroundColor: "#1c1c1e",
+      foregroundImage: "./assets/android-icon.png",
+      backgroundColor: "#FFFFFF",
+      monochromeImage: "./assets/android-icon.png",
     },
   },
   updates: {
