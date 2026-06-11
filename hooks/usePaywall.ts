@@ -38,7 +38,10 @@ export function usePaywall(): UsePaywallResult {
         });
       })
       .catch(() => {
-        setLoading(false);
+        fetchOfferings()
+          .then((pkgs) => setPackages(pkgs))
+          .catch(() => {})
+          .finally(() => setLoading(false));
       });
   }, [router]);
 

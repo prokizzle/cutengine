@@ -3,6 +3,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
 import { useRouter } from "expo-router";
 import { usePaywall } from "../../hooks/usePaywall";
+import { PRO_ENTITLEMENT } from "../../lib/revenueCat";
 import { NativePaywallWrapper } from "../../components/paywall/NativePaywallWrapper";
 import { PaywallHeader } from "../../components/paywall/PaywallHeader";
 import { PackageCard } from "../../components/paywall/PackageCard";
@@ -18,7 +19,11 @@ export default function PaywallScreen() {
     return (
       <NativePaywallWrapper
         onDismiss={() => setUseNativePaywall(false)}
-        onRestoreCompleted={() => router.replace("/(tabs)")}
+        onRestoreCompleted={({ customerInfo }) => {
+          if (customerInfo.entitlements.active[PRO_ENTITLEMENT] !== undefined) {
+            router.replace("/(tabs)");
+          }
+        }}
       />
     );
   }

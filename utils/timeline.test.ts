@@ -42,7 +42,7 @@ describe("groupByTimeOfDay", () => {
   });
 
   it("falls back to 'anytime' when timeOfDay is missing", () => {
-    const events = [makeEvent({ timeOfDay: undefined as unknown as string })];
+    const events = [makeEvent({ timeOfDay: undefined })];
     const result = groupByTimeOfDay(events);
     expect(result["anytime"]).toHaveLength(1);
   });

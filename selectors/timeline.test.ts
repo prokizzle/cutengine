@@ -29,13 +29,15 @@ describe("selectTimelineRenderOrder", () => {
     expect(orderedBuckets).not.toContain("midday");
   });
 
-  it("appends unknown bucket keys after known ones", () => {
+  it("appends unknown bucket keys after known ones, sorted alphabetically", () => {
     const events = [
       makeEvent({ id: "1", timeOfDay: "morning" }),
-      makeEvent({ id: "2", timeOfDay: "customBucket" as string }),
+      makeEvent({ id: "2", timeOfDay: "zzz" as string }),
+      makeEvent({ id: "3", timeOfDay: "aaa" as string }),
     ];
     const { orderedBuckets } = selectTimelineRenderOrder(events);
-    expect(orderedBuckets[orderedBuckets.length - 1]).toBe("customBucket");
+    const unknownPart = orderedBuckets.filter((b) => !["morning"].includes(b));
+    expect(unknownPart).toEqual(["aaa", "zzz"]);
   });
 });
 

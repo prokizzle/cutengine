@@ -12,7 +12,7 @@ export type DoseEvent = {
   name: string;
   dose?: number;
   unit?: string;
-  timeOfDay: TimeOfDay | string;
+  timeOfDay?: TimeOfDay | string;
   sortOrder: number;
   taken: boolean;
   regimen?: string;

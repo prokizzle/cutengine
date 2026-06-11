@@ -19,7 +19,7 @@ export function selectTimelineRenderOrder(
   const unknownKeys = getUnknownBucketKeys(grouped);
   const orderedBuckets = [
     ...DISPLAY_ORDER.filter((tod) => (grouped[tod]?.length ?? 0) > 0),
-    ...unknownKeys,
+    ...unknownKeys.sort(),
   ];
   return { orderedBuckets, grouped };
 }
