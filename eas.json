@@ -40,7 +40,11 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "nick@feelingmindful.com"
+        "appleId": "nick@feelingmindful.com",
+        "ascAppId": "6757690403"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./play-store-service-account.json"
       }
     }
   }
