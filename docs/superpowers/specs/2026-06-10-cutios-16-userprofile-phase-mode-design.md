@@ -129,5 +129,5 @@ Target coverage ≥ 80% on new code.
 | Phase model | Flat (`currentPhase` + `phaseStartDate`) | YAGNI; history can be derived from cycle/weight data later |
 | Macro split | Per-phase defaults + per-phase overrides | Sensible defaults reduce onboarding friction; overrides preserve power-user control |
 | Surplus target | Signed `targetWeightDeltaPerWeekKg` | One field, all phases; aligns with HealthKit kg-internal model |
-| Default phase | `cut`, `phaseStartDate = installDate` | Greenfield; v1 frozen; HealthKit weight history carries over |
+| Default phase | `cut`, `phaseStartDate = now` (set when the singleton is first inserted on initial `getUserProfile()`) | Greenfield; v1 frozen; HealthKit weight history carries over |
 | JS/Native API | Replace-all (`get` + `save`); no native mutators | Matches existing CycleStore pattern verbatim; YAGNI on mutators; TS helpers cover intent at call sites |

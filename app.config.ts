@@ -2,7 +2,7 @@ import type { ExpoConfig } from "@expo/config-types";
 
 const IS_SIDELOAD = process.env.APP_VARIANT === "sideload";
 
-const config = {
+const config: ExpoConfig = {
   name: IS_SIDELOAD ? "CutEngine Pro" : "CutEngine",
   slug: "cutengine",
   version: "2.0.0",
@@ -12,6 +12,7 @@ const config = {
   userInterfaceStyle: "dark",
   ios: {
     supportsTablet: true,
+    // @ts-expect-error - appleId is a valid Expo CLI runtime field used for App Store Connect lookups, but is not yet in @expo/config-types. Remove this directive once the type is added upstream.
     appleId: "6757690403",
     bundleIdentifier: IS_SIDELOAD
       ? "com.feelingmindful.cutengine.power"
@@ -54,6 +55,6 @@ const config = {
       projectId: "fc6ac35c-8c91-4d68-a4b0-5a7cfdeb9749",
     },
   },
-} as ExpoConfig;
+};
 
 export default config;
