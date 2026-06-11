@@ -1,3 +1,4 @@
+import { createSelector } from "reselect";
 import type { DoseEvent } from "../types/timeline";
 import {
   groupByTimeOfDay,
@@ -12,18 +13,34 @@ export type TimelineRenderOrder = {
   grouped: GroupedEvents;
 };
 
-export function selectTimelineRenderOrder(
-  events: DoseEvent[],
-): TimelineRenderOrder {
-  const grouped = groupByTimeOfDay(events);
-  const unknownKeys = getUnknownBucketKeys(grouped);
-  const orderedBuckets = [
+const selectEvents = (events: DoseEvent[]) => events;
+
+export const selectGroupedEvents = createSelector(
+  selectEvents,
+  groupByTimeOfDay,
+);
+
+export const selectUnknownBucketKeys = createSelector(
+  selectGroupedEvents,
+  getUnknownBucketKeys,
+);
+
+export const selectOrderedBuckets = createSelector(
+  selectGroupedEvents,
+  selectUnknownBucketKeys,
+  (grouped, unknownKeys): string[] => [
     ...DISPLAY_ORDER.filter((tod) => (grouped[tod]?.length ?? 0) > 0),
     ...unknownKeys.sort(),
-  ];
-  return { orderedBuckets, grouped };
-}
+  ],
+);
 
-export function selectDosedCount(events: DoseEvent[]): number {
-  return events.filter((e) => e.taken).length;
-}
+export const selectTimelineRenderOrder = createSelector(
+  selectOrderedBuckets,
+  selectGroupedEvents,
+  (orderedBuckets, grouped): TimelineRenderOrder => ({ orderedBuckets, grouped }),
+);
+
+export const selectDosedCount = createSelector(
+  selectEvents,
+  (events): number => events.filter((e) => e.taken).length,
+);
