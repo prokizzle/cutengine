@@ -29,6 +29,7 @@ export function usePaywall(): UsePaywallResult {
     checkEntitlement()
       .then((entitled) => {
         if (entitled) {
+          setLoading(false);
           router.replace("/(tabs)");
           return;
         }
