@@ -2,7 +2,7 @@ import type { ExpoConfig } from "@expo/config-types";
 
 const IS_SIDELOAD = process.env.APP_VARIANT === "sideload";
 
-const config: ExpoConfig = {
+const config = {
   name: IS_SIDELOAD ? "CutEngine Pro" : "CutEngine",
   slug: "cutengine",
   version: "2.0.0",
@@ -54,6 +54,6 @@ const config: ExpoConfig = {
       projectId: "fc6ac35c-8c91-4d68-a4b0-5a7cfdeb9749",
     },
   },
-};
+} as ExpoConfig;
 
 export default config;
