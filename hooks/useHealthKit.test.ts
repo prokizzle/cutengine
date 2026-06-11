@@ -1,4 +1,4 @@
-import { act, renderHook } from "@testing-library/react-native";
+import { renderHook, waitFor } from "@testing-library/react-native";
 import { useHealthKit } from "./useHealthKit";
 
 jest.mock("../lib/healthKit", () => ({
@@ -14,6 +14,7 @@ jest.mock("react-native", () => ({
 
 import * as healthKit from "../lib/healthKit";
 import { Alert } from "react-native";
+import { act } from "@testing-library/react-native";
 
 const mockInit = healthKit.initHealthKit as jest.Mock;
 const mockRead = healthKit.readLatestWeight as jest.Mock;
@@ -31,9 +32,7 @@ describe("useHealthKit", () => {
 
     const { result } = renderHook(() => useHealthKit());
 
-    await act(async () => {});
-
-    expect(result.current.ready).toBe(true);
+    await waitFor(() => expect(result.current.ready).toBe(true));
     expect(result.current.weightKg).toBe(80);
     expect(result.current.weightLbs).toBeCloseTo(80 * 2.20462, 3);
   });
@@ -42,7 +41,7 @@ describe("useHealthKit", () => {
     mockInit.mockResolvedValue(false);
 
     const { result } = renderHook(() => useHealthKit());
-    await act(async () => {});
+    await waitFor(() => expect(mockInit).toHaveBeenCalled());
 
     expect(result.current.ready).toBe(false);
     expect(result.current.weightKg).toBeNull();
@@ -53,7 +52,7 @@ describe("useHealthKit", () => {
     mockRead.mockResolvedValue(null);
 
     const { result } = renderHook(() => useHealthKit());
-    await act(async () => {});
+    await waitFor(() => expect(result.current.ready).toBe(true));
 
     await act(async () => {
       result.current.setWeightInput("abc");
@@ -72,7 +71,7 @@ describe("useHealthKit", () => {
     mockWrite.mockResolvedValue(undefined);
 
     const { result } = renderHook(() => useHealthKit());
-    await act(async () => {});
+    await waitFor(() => expect(result.current.weightKg).toBe(75));
 
     await act(async () => {
       result.current.setWeightInput("85");
@@ -92,7 +91,7 @@ describe("useHealthKit", () => {
     mockWrite.mockRejectedValue(new Error("HK unavailable"));
 
     const { result } = renderHook(() => useHealthKit());
-    await act(async () => {});
+    await waitFor(() => expect(result.current.ready).toBe(true));
 
     await act(async () => {
       result.current.setWeightInput("80");

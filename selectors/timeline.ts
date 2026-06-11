@@ -30,7 +30,7 @@ export const selectOrderedBuckets = createSelector(
   selectUnknownBucketKeys,
   (grouped, unknownKeys): string[] => [
     ...DISPLAY_ORDER.filter((tod) => (grouped[tod]?.length ?? 0) > 0),
-    ...unknownKeys.sort(),
+    ...[...unknownKeys].sort(),
   ],
 );
 
