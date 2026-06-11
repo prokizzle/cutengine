@@ -16,11 +16,18 @@ describe("HealthKitWidget", () => {
     expect(screen.getByText("HealthKit")).toBeTruthy();
   });
 
-  it("calls onLogWeight when Log pressed", () => {
+  it("calls onLogWeight when Log pressed with non-empty input", () => {
     const onLogWeight = jest.fn();
-    render(<HealthKitWidget {...base} onLogWeight={onLogWeight} />);
+    render(<HealthKitWidget {...base} weightInput="80" onLogWeight={onLogWeight} />);
     fireEvent.press(screen.getByText("Log"));
     expect(onLogWeight).toHaveBeenCalledTimes(1);
+  });
+
+  it("Log button does not fire when weightInput is empty", () => {
+    const onLogWeight = jest.fn();
+    render(<HealthKitWidget {...base} weightInput="" onLogWeight={onLogWeight} />);
+    fireEvent.press(screen.getByText("Log"));
+    expect(onLogWeight).not.toHaveBeenCalled();
   });
 
   it("shows last weight when weightKg is set", () => {

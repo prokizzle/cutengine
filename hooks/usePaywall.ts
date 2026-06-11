@@ -38,10 +38,11 @@ export function usePaywall(): UsePaywallResult {
           setLoading(false);
         });
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error("[usePaywall] entitlement check failed:", err);
         fetchOfferings()
           .then((pkgs) => setPackages(pkgs))
-          .catch(() => {})
+          .catch((fetchErr) => console.error("[usePaywall] fetchOfferings failed:", fetchErr))
           .finally(() => setLoading(false));
       });
   }, [router]);

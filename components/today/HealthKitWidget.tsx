@@ -37,7 +37,9 @@ export function HealthKitWidget({
         />
         <TouchableOpacity
           className="bg-positive rounded-lg px-4 py-2"
+          style={{ opacity: !ready || !weightInput.trim() ? 0.4 : 1 }}
           onPress={onLogWeight}
+          disabled={!ready || !weightInput.trim()}
         >
           <Text className="text-white font-semibold text-sm">Log</Text>
         </TouchableOpacity>

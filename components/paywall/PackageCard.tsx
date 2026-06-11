@@ -47,7 +47,7 @@ export function PackageCard({ pkg, disabled, onPress }: Props) {
         </View>
       </View>
       {isLifetime && <BadgePill label="BEST VALUE" />}
-      {isAnnual && !isLifetime && <BadgePill label="MOST POPULAR" />}
+      {isAnnual && <BadgePill label="MOST POPULAR" />}
     </TouchableOpacity>
   );
 }

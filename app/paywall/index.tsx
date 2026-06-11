@@ -1,32 +1,13 @@
 import { ActivityIndicator, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useState } from "react";
-import { useRouter } from "expo-router";
 import { usePaywall } from "../../hooks/usePaywall";
-import { PRO_ENTITLEMENT } from "../../lib/revenueCat";
-import { NativePaywallWrapper } from "../../components/paywall/NativePaywallWrapper";
 import { PaywallHeader } from "../../components/paywall/PaywallHeader";
 import { PackageCard } from "../../components/paywall/PackageCard";
 import { PaywallFooter } from "../../components/paywall/PaywallFooter";
 
 export default function PaywallScreen() {
-  const router = useRouter();
-  const [useNativePaywall, setUseNativePaywall] = useState(false);
   const { loading, packages, purchasing, restoring, handlePurchase, handleRestore } =
     usePaywall();
-
-  if (useNativePaywall) {
-    return (
-      <NativePaywallWrapper
-        onDismiss={() => setUseNativePaywall(false)}
-        onRestoreCompleted={({ customerInfo }) => {
-          if (customerInfo.entitlements.active[PRO_ENTITLEMENT] !== undefined) {
-            router.replace("/(tabs)");
-          }
-        }}
-      />
-    );
-  }
 
   if (loading) {
     return (
@@ -48,7 +29,7 @@ export default function PaywallScreen() {
             <PackageCard
               key={pkg.identifier}
               pkg={pkg}
-              disabled={purchasing}
+              disabled={purchasing || restoring}
               onPress={handlePurchase}
             />
           ))}
