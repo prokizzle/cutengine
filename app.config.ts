@@ -12,9 +12,12 @@ const config: ExpoConfig = {
   userInterfaceStyle: "dark",
   ios: {
     supportsTablet: true,
+    // @ts-expect-error - appleId is a valid Expo CLI runtime field used for App Store Connect lookups, but is not yet in @expo/config-types. Remove this directive once the type is added upstream.
+    appleId: "6757690403",
     bundleIdentifier: IS_SIDELOAD
       ? "com.feelingmindful.cutengine.power"
       : "com.feelingmindful.diet-plan",
+    icon: "./assets/app-icon.icon",
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
       NSHealthShareUsageDescription:
@@ -24,9 +27,11 @@ const config: ExpoConfig = {
     },
   },
   android: {
+    package: "com.feelingmindful.cutengine",
     adaptiveIcon: {
-      foregroundImage: "./assets/icon.png",
-      backgroundColor: "#1c1c1e",
+      foregroundImage: "./assets/android-icon.png",
+      backgroundColor: "#FFFFFF",
+      monochromeImage: "./assets/android-icon.png",
     },
   },
   updates: {
