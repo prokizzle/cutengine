@@ -1,6 +1,9 @@
 import type { ColorValue } from "react-native";
-import { Tabs } from "expo-router";
+import { Redirect, Tabs } from "expo-router";
+import { useEffect, useState } from "react";
 import { Text } from "react-native";
+
+import { hasUserProfile } from "../../lib/cycleStore";
 
 const TAB_ICONS: Record<string, string> = {
   calendar: "📅",
@@ -10,6 +13,29 @@ const TAB_ICONS: Record<string, string> = {
 };
 
 export default function TabLayout() {
+  // First-launch gate. This must resolve BEFORE any tab screen mounts:
+  // tab screens call getUserProfile(), which inserts the default singleton
+  // and would make hasUserProfile() race to true, silently skipping
+  // onboarding. On error, fall through to the tabs rather than trapping
+  // the user on the onboarding screen.
+  const [profileExists, setProfileExists] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    hasUserProfile()
+      .then(setProfileExists)
+      .catch((err) => {
+        console.error("[TabLayout] hasUserProfile failed:", err);
+        setProfileExists(true);
+      });
+  }, []);
+
+  if (profileExists === null) {
+    return null;
+  }
+  if (!profileExists) {
+    return <Redirect href="/onboarding" />;
+  }
+
   return (
     <Tabs
       screenOptions={{

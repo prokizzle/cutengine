@@ -4,6 +4,7 @@ import { useHealthKit } from "./useHealthKit";
 jest.mock("../lib/healthKit", () => ({
   initHealthKit: jest.fn(),
   readLatestWeight: jest.fn(),
+  readWeightHistory: jest.fn(),
   writeWeight: jest.fn(),
 }));
 
@@ -18,11 +19,13 @@ import { act } from "@testing-library/react-native";
 
 const mockInit = healthKit.initHealthKit as jest.Mock;
 const mockRead = healthKit.readLatestWeight as jest.Mock;
+const mockHistory = healthKit.readWeightHistory as jest.Mock;
 const mockWrite = healthKit.writeWeight as jest.Mock;
 const mockAlert = Alert.alert as jest.Mock;
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockHistory.mockResolvedValue([]);
 });
 
 describe("useHealthKit", () => {
@@ -83,6 +86,26 @@ describe("useHealthKit", () => {
     expect(mockWrite).toHaveBeenCalledWith(85);
     expect(result.current.weightKg).toBe(85);
     expect(result.current.weightInput).toBe("");
+  });
+
+  it("loads weight history when init succeeds and refreshes after logging", async () => {
+    const history = [{ date: "2026-06-01T00:00:00.000Z", kg: 84.2 }];
+    mockInit.mockResolvedValue(true);
+    mockRead.mockResolvedValue(84.2);
+    mockHistory.mockResolvedValue(history);
+    mockWrite.mockResolvedValue(undefined);
+
+    const { result } = renderHook(() => useHealthKit());
+    await waitFor(() => expect(result.current.weightHistory).toEqual(history));
+
+    await act(async () => {
+      result.current.setWeightInput("84");
+    });
+    await act(async () => {
+      await result.current.logWeight();
+    });
+
+    expect(mockHistory).toHaveBeenCalledTimes(2);
   });
 
   it("logWeight alerts on write error", async () => {

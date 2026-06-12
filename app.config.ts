@@ -18,6 +18,9 @@ const config: ExpoConfig = {
       ? "com.feelingmindful.cutengine.power"
       : "com.feelingmindful.diet-plan",
     icon: "./assets/app-icon.icon",
+    entitlements: {
+      "com.apple.developer.healthkit": true,
+    },
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
       NSHealthShareUsageDescription:

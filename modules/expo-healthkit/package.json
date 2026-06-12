@@ -1,0 +1,13 @@
+{
+  "name": "expo-healthkit",
+  "version": "0.1.0",
+  "description": "HealthKit bridge — bodyMass read/write, active energy, weight history, exposed via Expo Modules API",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {},
+  "peerDependencies": {
+    "expo": "*",
+    "expo-modules-core": "*"
+  },
+  "private": true
+}

@@ -14,6 +14,9 @@ enum BridgeConversionError: LocalizedError {
     case invalidScheduleName(String)
     case invalidStartWeek(Int)
     case invalidEndWeek(Int)
+    case invalidPhase(String)
+    case invalidMacroRatio(String)
+    case invalidBiofeedbackAnswer(String)
 
     var errorDescription: String? {
         switch self {
@@ -41,6 +44,12 @@ enum BridgeConversionError: LocalizedError {
             return "Start week must be positive: \(value)"
         case .invalidEndWeek(let value):
             return "End week must be positive: \(value)"
+        case .invalidPhase(let value):
+            return "Invalid phase: \(value)"
+        case .invalidMacroRatio(let value):
+            return "Invalid macro ratio for phase: \(value)"
+        case .invalidBiofeedbackAnswer(let reason):
+            return "Invalid biofeedback answer: \(reason)"
         }
     }
 }
@@ -278,6 +287,122 @@ struct ScheduleRecord: Record {
             endDate: decodedEnd,
             rules: try rules.map { try $0.toDoseRule() },
             status: Schedule.ScheduleStatus(rawValue: status) ?? .draft
+        )
+    }
+}
+
+struct UserProfileRecord: Record {
+    @Field var id: String = UserProfile.singletonID
+    @Field var currentPhase: String = Phase.cut.rawValue
+    @Field var phaseStartDate: String = ""
+    // Keyed by phase rawValue; each value carries protein/carb/fat fractions.
+    @Field var macroOverrides: [String: [String: Double]] = [:]
+    @Field var targetWeightDeltaPerWeekKg: Double = -0.5
+
+    init() {}
+
+    init(_ profile: UserProfile) {
+        id = profile.id
+        currentPhase = profile.currentPhase.rawValue
+        phaseStartDate = BridgeDate.encode(profile.phaseStartDate)
+        macroOverrides = profile.macroOverrides.reduce(into: [:]) { result, pair in
+            result[pair.key.rawValue] = [
+                "protein": pair.value.protein,
+                "carb": pair.value.carb,
+                "fat": pair.value.fat,
+            ]
+        }
+        targetWeightDeltaPerWeekKg = profile.targetWeightDeltaPerWeekKg
+    }
+
+    func toUserProfile() throws -> UserProfile {
+        guard let phase = Phase(rawValue: currentPhase) else {
+            throw BridgeConversionError.invalidPhase(currentPhase)
+        }
+        var overrides: [Phase: MacroRatio] = [:]
+        for (key, values) in macroOverrides {
+            guard let overridePhase = Phase(rawValue: key) else {
+                throw BridgeConversionError.invalidPhase(key)
+            }
+            guard let protein = values["protein"], let carb = values["carb"], let fat = values["fat"] else {
+                throw BridgeConversionError.invalidMacroRatio(key)
+            }
+            let total = protein + carb + fat
+            // Same tolerance as UserProfile.validate() and the CUTIOS-16 spec
+            // (0.99...1.01, allowing rounding noise) — a stricter bridge check
+            // would reject saves the store contract considers valid.
+            guard
+                (0 ... 1).contains(protein),
+                (0 ... 1).contains(carb),
+                (0 ... 1).contains(fat),
+                (0.99 ... 1.01).contains(total)
+            else {
+                throw BridgeConversionError.invalidMacroRatio(key)
+            }
+            overrides[overridePhase] = MacroRatio(protein: protein, carb: carb, fat: fat)
+        }
+        // The profile is a singleton — ignore whatever id JS sent so reads,
+        // writes, and the onboarding gate always target the same row.
+        return UserProfile(
+            id: UserProfile.singletonID,
+            currentPhase: phase,
+            phaseStartDate: try BridgeDate.decode(phaseStartDate),
+            macroOverrides: overrides,
+            targetWeightDeltaPerWeekKg: targetWeightDeltaPerWeekKg
+        )
+    }
+}
+
+struct BiofeedbackAnswerRecord: Record {
+    @Field var questionID: String = ""
+    @Field var prompt: String = ""
+    @Field var score: Int = 0
+
+    init() {}
+
+    init(_ answer: BiofeedbackAnswer) {
+        questionID = answer.questionID
+        prompt = answer.prompt
+        score = answer.score
+    }
+
+    func toAnswer() throws -> BiofeedbackAnswer {
+        guard !questionID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw BridgeConversionError.invalidBiofeedbackAnswer("questionID is empty")
+        }
+        guard (1 ... 5).contains(score) else {
+            throw BridgeConversionError.invalidBiofeedbackAnswer(
+                "score \(score) for \(questionID) outside 1–5"
+            )
+        }
+        return BiofeedbackAnswer(questionID: questionID, prompt: prompt, score: score)
+    }
+}
+
+struct BiofeedbackEntryRecord: Record {
+    @Field var id: String = ""
+    @Field var date: String = ""
+    @Field var phase: String = Phase.cut.rawValue
+    @Field var answers: [BiofeedbackAnswerRecord] = []
+
+    init() {}
+
+    init(_ entry: BiofeedbackEntry) {
+        id = entry.id.uuidString
+        date = BridgeDate.encode(entry.date)
+        phase = entry.phase.rawValue
+        answers = entry.answers.map(BiofeedbackAnswerRecord.init)
+    }
+
+    func toEntry() throws -> BiofeedbackEntry {
+        guard let parsedPhase = Phase(rawValue: phase) else {
+            throw BridgeConversionError.invalidPhase(phase)
+        }
+        return BiofeedbackEntry(
+            id: try uuid(id),
+            date: try BridgeDate.decode(date),
+            phase: parsedPhase,
+            answers: try answers.map { try $0.toAnswer() }
         )
     }
 }

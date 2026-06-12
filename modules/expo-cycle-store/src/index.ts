@@ -1,4 +1,10 @@
-import { requireNativeModule } from "expo-modules-core";
+import { requireOptionalNativeModule } from "expo-modules-core";
+
+import type { UserProfile } from "./userProfile";
+import type { BiofeedbackEntry } from "./biofeedback";
+
+export * from "./userProfile";
+export * from "./biofeedback";
 
 // Types mirror the Swift structs — Expo Modules generates TS types from these
 // when typedRoutes + typed modules are enabled, but explicit types ensure
@@ -72,8 +78,10 @@ export interface TodayEvent {
   weekLabel?: string;
 }
 
-// Native module — typed at call sites with explicit overloads
-const NativeModule = requireNativeModule("ExpoCycleStore");
+// Native module — typed at call sites with explicit overloads.
+// Optional resolution: the module is iOS-only, and eager requireNativeModule
+// would throw at import time on Android/web before lib-level Platform guards run.
+const NativeModule = requireOptionalNativeModule("ExpoCycleStore") as any;
 
 export default {
   initialize: (): Promise<void> => NativeModule.initialize(),
@@ -97,4 +105,15 @@ export default {
   getMealRules: (scheduleID: string): Promise<MealRule[]> => NativeModule.getMealRules(scheduleID),
   saveMealRule: (rule: MealRule): Promise<void> => NativeModule.saveMealRule(rule),
   deleteMealRule: (id: string): Promise<void> => NativeModule.deleteMealRule(id),
+
+  // User Profile (singleton — getUserProfile creates the default if missing)
+  getUserProfile: (): Promise<UserProfile> => NativeModule.getUserProfile(),
+  hasUserProfile: (): Promise<boolean> => NativeModule.hasUserProfile(),
+  saveUserProfile: (profile: UserProfile): Promise<void> => NativeModule.saveUserProfile(profile),
+
+  // Biofeedback
+  getBiofeedbackEntries: (): Promise<BiofeedbackEntry[]> => NativeModule.getBiofeedbackEntries(),
+  saveBiofeedbackEntry: (entry: BiofeedbackEntry): Promise<void> =>
+    NativeModule.saveBiofeedbackEntry(entry),
+  deleteBiofeedbackEntry: (id: string): Promise<void> => NativeModule.deleteBiofeedbackEntry(id),
 };

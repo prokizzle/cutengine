@@ -25,9 +25,13 @@ export default function RootLayout() {
     }
   }, []);
 
+  // First-launch onboarding gate lives in app/(tabs)/_layout.tsx — it must
+  // run before any tab screen mounts, because mounted screens call
+  // getUserProfile(), which creates the default singleton.
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
       <Stack.Screen
         name="paywall"
         options={{ presentation: "modal", headerShown: false }}
