@@ -328,11 +328,14 @@ struct UserProfileRecord: Record {
                 throw BridgeConversionError.invalidMacroRatio(key)
             }
             let total = protein + carb + fat
+            // Same tolerance as UserProfile.validate() and the CUTIOS-16 spec
+            // (0.99...1.01, allowing rounding noise) — a stricter bridge check
+            // would reject saves the store contract considers valid.
             guard
                 (0 ... 1).contains(protein),
                 (0 ... 1).contains(carb),
                 (0 ... 1).contains(fat),
-                abs(total - 1) < 0.000_001
+                (0.99 ... 1.01).contains(total)
             else {
                 throw BridgeConversionError.invalidMacroRatio(key)
             }
