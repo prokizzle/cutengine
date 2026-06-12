@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useProEntitlement } from "../hooks/useProEntitlement";
@@ -53,10 +53,11 @@ export default function OnboardingScreen() {
         macroOverrides: {},
         targetWeightDeltaPerWeekKg: deltaKg,
       });
+      router.replace("/(tabs)");
     } catch (err) {
       console.error("[Onboarding] failed to save profile:", err);
+      Alert.alert("Couldn't save your setup", "Please try again.");
     }
-    router.replace("/(tabs)");
   };
 
   const selectPhase = (selected: Phase) => {

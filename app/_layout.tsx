@@ -1,11 +1,9 @@
 import "../global.css";
 
 import * as Sentry from "@sentry/react-native";
-import { Stack, useRouter } from "expo-router";
+import { Stack } from "expo-router";
 import { useEffect } from "react";
 import Purchases, { LOG_LEVEL } from "react-native-purchases";
-
-import { hasUserProfile } from "../lib/cycleStore";
 
 const RC_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_API_KEY;
 
@@ -16,8 +14,6 @@ Sentry.init({
 });
 
 export default function RootLayout() {
-  const router = useRouter();
-
   useEffect(() => {
     if (!RC_API_KEY) {
       console.warn("[RevenueCat] EXPO_PUBLIC_REVENUECAT_API_KEY not set");
@@ -29,15 +25,9 @@ export default function RootLayout() {
     }
   }, []);
 
-  // First launch: no UserProfile singleton yet → run phase-first onboarding.
-  useEffect(() => {
-    hasUserProfile()
-      .then((exists) => {
-        if (!exists) router.replace("/onboarding");
-      })
-      .catch(console.error);
-  }, [router]);
-
+  // First-launch onboarding gate lives in app/(tabs)/_layout.tsx — it must
+  // run before any tab screen mounts, because mounted screens call
+  // getUserProfile(), which creates the default singleton.
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
