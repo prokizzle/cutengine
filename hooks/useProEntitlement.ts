@@ -12,14 +12,20 @@ export function useProEntitlement(): UseProEntitlementResult {
   const [entitled, setEntitled] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Loading covers every in-flight check, not just the first one — focus-driven
+  // refreshes (e.g. returning from the paywall) must re-arm the guards that
+  // keep callers from acting on a stale `entitled` value mid-check.
   const refresh = useCallback(async () => {
-    setEntitled(await checkEntitlement());
+    setLoading(true);
+    try {
+      setEntitled(await checkEntitlement());
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
-    refresh()
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    refresh().catch(console.error);
   }, [refresh]);
 
   return { entitled, loading, refresh };
