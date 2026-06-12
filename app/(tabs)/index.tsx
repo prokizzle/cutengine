@@ -17,6 +17,7 @@ import { macroRatioFor } from "../../modules/expo-cycle-store/src/userProfile";
 import type { BiofeedbackAnswer, BiofeedbackEntry } from "../../modules/expo-cycle-store/src/biofeedback";
 import { questionsForPhase } from "../../utils/biofeedback";
 import { dailyTargetKcal, macroGramsFor } from "../../utils/calorieTargets";
+import { localDayKey } from "../../utils/complianceDataset";
 import { predictTodayMissRisk } from "../../utils/compliancePredictor";
 import { phaseDurationWeeks } from "../../utils/phase";
 import { suggestPhaseChange } from "../../utils/phaseSuggestion";
@@ -48,7 +49,9 @@ export default function TodayScreen() {
   // Keyed by suggestion kind so dismissing one insight doesn't hide
   // different suggestions computed later in the same session.
   const [dismissedSuggestionKind, setDismissedSuggestionKind] = useState<string | null>(null);
-  const [dismissedRiskCard, setDismissedRiskCard] = useState(false);
+  // Day-keyed so a dismissal can't suppress a different day's risk insight
+  // when the screen stays mounted across midnight.
+  const [dismissedRiskDay, setDismissedRiskDay] = useState<string | null>(null);
 
   useEffect(() => {
     loadBiofeedbackEntries()
@@ -65,13 +68,19 @@ export default function TodayScreen() {
   const submitCheckIn = useCallback(
     (answers: BiofeedbackAnswer[]) => {
       if (!profile) return;
-      persistBiofeedbackEntry({
+      const entry: BiofeedbackEntry = {
         id: uuidv4(),
         date: new Date().toISOString(),
         phase: profile.currentPhase,
         answers,
-      })
-        .then(() => setCheckedInToday(true))
+      };
+      persistBiofeedbackEntry(entry)
+        .then(() => {
+          setCheckedInToday(true);
+          // Keep in-memory history in sync with the store so the miss
+          // predictor doesn't read today's check-in as a miss after midnight.
+          setBiofeedbackEntries((prev) => [...prev, entry]);
+        })
         .catch((err) => Sentry.captureException(err));
     },
     [profile],
@@ -123,10 +132,10 @@ export default function TodayScreen() {
             onDismiss={() => setDismissedSuggestionKind(suggestion.kind)}
           />
         )}
-        {missRisk && !checkedInToday && !dismissedRiskCard && (
+        {missRisk && !checkedInToday && dismissedRiskDay !== localDayKey(new Date()) && (
           <ComplianceRiskCard
             prediction={missRisk}
-            onDismiss={() => setDismissedRiskCard(true)}
+            onDismiss={() => setDismissedRiskDay(localDayKey(new Date()))}
           />
         )}
         <HealthKitWidget
