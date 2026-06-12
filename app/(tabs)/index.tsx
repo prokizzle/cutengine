@@ -1,11 +1,12 @@
 import * as Sentry from "@sentry/react-native";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TimelineHero } from "../../components/timeline/TimelineHero";
 import { MacroTargets } from "../../components/timeline/MacroTargets";
 import { TimelineSpine } from "../../components/timeline/TimelineSpine";
 import { CheckInCard } from "../../components/today/CheckInCard";
+import { ComplianceRiskCard } from "../../components/today/ComplianceRiskCard";
 import { HealthKitWidget } from "../../components/today/HealthKitWidget";
 import { PhaseBadge } from "../../components/today/PhaseBadge";
 import { PhaseSuggestionCard } from "../../components/today/PhaseSuggestionCard";
@@ -13,9 +14,11 @@ import { useHealthKit } from "../../hooks/useHealthKit";
 import { useUserProfile } from "../../hooks/useUserProfile";
 import { loadBiofeedbackEntries, persistBiofeedbackEntry } from "../../lib/cycleStore";
 import { macroRatioFor } from "../../modules/expo-cycle-store/src/userProfile";
-import type { BiofeedbackAnswer } from "../../modules/expo-cycle-store/src/biofeedback";
+import type { BiofeedbackAnswer, BiofeedbackEntry } from "../../modules/expo-cycle-store/src/biofeedback";
 import { questionsForPhase } from "../../utils/biofeedback";
 import { dailyTargetKcal, macroGramsFor } from "../../utils/calorieTargets";
+import { localDayKey } from "../../utils/complianceDataset";
+import { predictTodayMissRisk } from "../../utils/compliancePredictor";
 import { phaseDurationWeeks } from "../../utils/phase";
 import { suggestPhaseChange } from "../../utils/phaseSuggestion";
 import { uuidv4 } from "../../utils/uuid";
@@ -42,13 +45,18 @@ export default function TodayScreen() {
     useHealthKit();
   const { profile } = useUserProfile();
   const [checkedInToday, setCheckedInToday] = useState(false);
+  const [biofeedbackEntries, setBiofeedbackEntries] = useState<BiofeedbackEntry[]>([]);
   // Keyed by suggestion kind so dismissing one insight doesn't hide
   // different suggestions computed later in the same session.
   const [dismissedSuggestionKind, setDismissedSuggestionKind] = useState<string | null>(null);
+  // Day-keyed so a dismissal can't suppress a different day's risk insight
+  // when the screen stays mounted across midnight.
+  const [dismissedRiskDay, setDismissedRiskDay] = useState<string | null>(null);
 
   useEffect(() => {
     loadBiofeedbackEntries()
       .then((entries) => {
+        setBiofeedbackEntries(entries);
         const hasTodayEntry = entries.some((entry) =>
           isSameDay(new Date(entry.date), new Date()),
         );
@@ -60,13 +68,19 @@ export default function TodayScreen() {
   const submitCheckIn = useCallback(
     (answers: BiofeedbackAnswer[]) => {
       if (!profile) return;
-      persistBiofeedbackEntry({
+      const entry: BiofeedbackEntry = {
         id: uuidv4(),
         date: new Date().toISOString(),
         phase: profile.currentPhase,
         answers,
-      })
-        .then(() => setCheckedInToday(true))
+      };
+      persistBiofeedbackEntry(entry)
+        .then(() => {
+          setCheckedInToday(true);
+          // Keep in-memory history in sync with the store so the miss
+          // predictor doesn't read today's check-in as a miss after midnight.
+          setBiofeedbackEntries((prev) => [...prev, entry]);
+        })
         .catch((err) => Sentry.captureException(err));
     },
     [profile],
@@ -79,6 +93,14 @@ export default function TodayScreen() {
     : { protein: 185, carbs: 160, fat: 55 };
 
   const suggestion = profile ? suggestPhaseChange(weightHistory, profile) : null;
+
+  // CUTIOS-12 — on-device miss-risk model, retrained from history on mount
+  // (the "morning check" integration point). Only nudges while today's
+  // check-in is still pending.
+  const missRisk = useMemo(
+    () => (profile ? predictTodayMissRisk(biofeedbackEntries, profile) : null),
+    [biofeedbackEntries, profile],
+  );
 
   return (
     <SafeAreaView className="flex-1 bg-surface-primary">
@@ -108,6 +130,12 @@ export default function TodayScreen() {
           <PhaseSuggestionCard
             suggestion={suggestion}
             onDismiss={() => setDismissedSuggestionKind(suggestion.kind)}
+          />
+        )}
+        {missRisk && !checkedInToday && dismissedRiskDay !== localDayKey(new Date()) && (
+          <ComplianceRiskCard
+            prediction={missRisk}
+            onDismiss={() => setDismissedRiskDay(localDayKey(new Date()))}
           />
         )}
         <HealthKitWidget
