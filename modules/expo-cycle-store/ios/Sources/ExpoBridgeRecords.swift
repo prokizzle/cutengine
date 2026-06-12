@@ -326,8 +326,10 @@ struct UserProfileRecord: Record {
             }
             overrides[overridePhase] = MacroRatio(protein: protein, carb: carb, fat: fat)
         }
+        // The profile is a singleton — ignore whatever id JS sent so reads,
+        // writes, and the onboarding gate always target the same row.
         return UserProfile(
-            id: id,
+            id: UserProfile.singletonID,
             currentPhase: phase,
             phaseStartDate: try BridgeDate.decode(phaseStartDate),
             macroOverrides: overrides,

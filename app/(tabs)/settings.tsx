@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react-native";
 import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -28,6 +29,11 @@ export default function SettingsScreen() {
   const { profile, switchPhase, setWeeklyDelta, overrideMacros } = useUserProfile();
   const { entitled } = useProEntitlement();
 
+  const reportSaveFailure = (err: unknown) => {
+    Sentry.captureException(err);
+    Alert.alert("Couldn't save", "Your phase settings didn't save. Please try again.");
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-surface-primary">
       <ScrollView className="flex-1" contentContainerStyle={{ paddingTop: 12, paddingBottom: 40 }}>
@@ -37,9 +43,9 @@ export default function SettingsScreen() {
             <PhaseSettings
               profile={profile}
               entitled={entitled}
-              onSwitchPhase={(phase) => { switchPhase(phase).catch(console.error); }}
-              onSelectWeeklyDelta={(kg) => { setWeeklyDelta(kg).catch(console.error); }}
-              onEditMacros={(phase, ratio) => { overrideMacros(phase, ratio).catch(console.error); }}
+              onSwitchPhase={(phase) => { switchPhase(phase).catch(reportSaveFailure); }}
+              onSelectWeeklyDelta={(kg) => { setWeeklyDelta(kg).catch(reportSaveFailure); }}
+              onEditMacros={(phase, ratio) => { overrideMacros(phase, ratio).catch(reportSaveFailure); }}
               onRequirePro={() => router.push("/paywall")}
             />
           </Section>

@@ -201,6 +201,19 @@ struct CycleStoreTests {
         }
     }
 
+    @Test("macro ratio component outside 0...1 throws invalidUserProfile")
+    func outOfRangeRatioComponentThrows() async throws {
+        let store = try await CycleStore.inMemory()
+
+        var profile = try await store.userProfile()
+        // Sums to 1.0 but contains negative components.
+        profile.macroOverrides[.cut] = MacroRatio(protein: 1.2, carb: -0.1, fat: -0.1)
+
+        await #expect(throws: StoreError.self) {
+            try await store.saveUserProfile(profile)
+        }
+    }
+
     @Test("non-finite macro ratio throws invalidUserProfile")
     func nonFiniteRatioThrows() async throws {
         let store = try await CycleStore.inMemory()
@@ -283,6 +296,21 @@ struct CycleStoreTests {
             date: Date(),
             phase: .cut,
             answers: [BiofeedbackAnswer(questionID: "hunger", prompt: "Hunger?", score: 9)]
+        )
+
+        await #expect(throws: StoreError.self) {
+            try await store.saveBiofeedbackEntry(entry)
+        }
+    }
+
+    @Test("empty biofeedback prompt throws")
+    func biofeedbackEmptyPromptThrows() async throws {
+        let store = try await CycleStore.inMemory()
+
+        let entry = BiofeedbackEntry(
+            date: Date(),
+            phase: .cut,
+            answers: [BiofeedbackAnswer(questionID: "hunger", prompt: "   ", score: 3)]
         )
 
         await #expect(throws: StoreError.self) {

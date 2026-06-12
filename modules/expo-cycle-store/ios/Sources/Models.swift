@@ -148,9 +148,12 @@ public final class UserProfileEntity {
     }
 
     public func toStruct() throws -> UserProfile {
-        UserProfile(
+        guard let currentPhase = Phase(rawValue: currentPhaseRaw) else {
+            throw StoreError.invalidUserProfileData
+        }
+        return UserProfile(
             id: id,
-            currentPhase: Phase(rawValue: currentPhaseRaw) ?? .cut,
+            currentPhase: currentPhase,
             phaseStartDate: phaseStartDate,
             macroOverrides: try decodedMacroOverrides(),
             targetWeightDeltaPerWeekKg: targetWeightDeltaPerWeekKg
@@ -185,10 +188,13 @@ public final class BiofeedbackEntryEntity {
     }
 
     public func toStruct() throws -> BiofeedbackEntry {
-        BiofeedbackEntry(
+        guard let phase = Phase(rawValue: phaseRaw) else {
+            throw StoreError.invalidBiofeedbackEntry(reason: "Entry \(id) has invalid phase '\(phaseRaw)'")
+        }
+        return BiofeedbackEntry(
             id: id,
             date: date,
-            phase: Phase(rawValue: phaseRaw) ?? .cut,
+            phase: phase,
             answers: try decodedAnswers()
         )
     }

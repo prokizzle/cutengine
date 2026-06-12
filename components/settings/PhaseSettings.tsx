@@ -8,9 +8,17 @@ import {
   type UserProfile,
 } from "../../modules/expo-cycle-store/src/userProfile";
 import { CUT_TIERS, SURPLUS_TIERS, type WeeklyDeltaTier } from "../../utils/calorieTargets";
-import { PHASE_COLOR, PHASE_LABEL, phaseDurationLabel } from "../../utils/phase";
+import { PHASE_LABEL, phaseDurationLabel } from "../../utils/phase";
 
 const PHASES: Phase[] = ["cut", "bulk", "maintenance"];
+
+// Mirrors PHASE_COLOR using the design-token classes (cut red, bulk green,
+// maintenance blue) so styling stays in NativeWind classNames.
+const PHASE_TEXT_CLASS: Record<Phase, string> = {
+  cut: "text-warning",
+  bulk: "text-positive",
+  maintenance: "text-info",
+};
 
 type Props = {
   profile: UserProfile;
@@ -183,8 +191,11 @@ export function PhaseSettings({
               }}
             >
               <Text
-                className={selected ? "text-sm font-semibold" : "text-text-tertiary text-sm"}
-                style={selected ? { color: PHASE_COLOR[option] } : undefined}
+                className={
+                  selected
+                    ? `${PHASE_TEXT_CLASS[option]} text-sm font-semibold`
+                    : "text-text-tertiary text-sm"
+                }
               >
                 {PHASE_LABEL[option]}
               </Text>

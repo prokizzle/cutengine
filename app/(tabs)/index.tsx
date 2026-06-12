@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react-native";
 import { useCallback, useEffect, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -41,17 +42,19 @@ export default function TodayScreen() {
     useHealthKit();
   const { profile } = useUserProfile();
   const [checkedInToday, setCheckedInToday] = useState(false);
-  const [suggestionDismissed, setSuggestionDismissed] = useState(false);
+  // Keyed by suggestion kind so dismissing one insight doesn't hide
+  // different suggestions computed later in the same session.
+  const [dismissedSuggestionKind, setDismissedSuggestionKind] = useState<string | null>(null);
 
   useEffect(() => {
     loadBiofeedbackEntries()
       .then((entries) => {
-        const latest = entries[0];
-        if (latest && isSameDay(new Date(latest.date), new Date())) {
-          setCheckedInToday(true);
-        }
+        const hasTodayEntry = entries.some((entry) =>
+          isSameDay(new Date(entry.date), new Date()),
+        );
+        if (hasTodayEntry) setCheckedInToday(true);
       })
-      .catch(console.error);
+      .catch((err) => Sentry.captureException(err));
   }, []);
 
   const submitCheckIn = useCallback(
@@ -64,7 +67,7 @@ export default function TodayScreen() {
         answers,
       })
         .then(() => setCheckedInToday(true))
-        .catch(console.error);
+        .catch((err) => Sentry.captureException(err));
     },
     [profile],
   );
@@ -101,10 +104,10 @@ export default function TodayScreen() {
           weightDelta={-2.3}
           phase={phase}
         />
-        {suggestion && !suggestionDismissed && (
+        {suggestion && suggestion.kind !== dismissedSuggestionKind && (
           <PhaseSuggestionCard
             suggestion={suggestion}
-            onDismiss={() => setSuggestionDismissed(true)}
+            onDismiss={() => setDismissedSuggestionKind(suggestion.kind)}
           />
         )}
         <HealthKitWidget

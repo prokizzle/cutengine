@@ -28,6 +28,19 @@ describe("weightTrendKgPerWeek", () => {
     const trend = weightTrendKgPerWeek(samples(28, 85, 0), NOW);
     expect(Math.abs(trend!)).toBeLessThan(0.01);
   });
+
+  it("collapses duplicate same-day weigh-ins to one value per day", () => {
+    // Flat series, but recent days each have an extra heavy outlier weigh-in
+    // earlier the same day. Day-collapsing (latest wins) keeps the trend flat.
+    const base = samples(28, 85, 0);
+    const noisy = base.flatMap((s, i) => {
+      if (i < 21) return [s];
+      const earlier = new Date(new Date(s.date).getTime() - 60 * 60 * 1000);
+      return [{ date: earlier.toISOString(), kg: s.kg + 3 }, s];
+    });
+    const trend = weightTrendKgPerWeek(noisy, NOW);
+    expect(Math.abs(trend!)).toBeLessThan(0.01);
+  });
 });
 
 describe("suggestPhaseChange", () => {

@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { useProEntitlement } from "../hooks/useProEntitlement";
 import { persistUserProfile } from "../lib/cycleStore";
 import {
@@ -39,10 +39,18 @@ function PrimaryButton({ label, onPress, disabled }: { label: string; onPress: (
 
 export default function OnboardingScreen() {
   const router = useRouter();
-  const { entitled } = useProEntitlement();
+  const { entitled, loading: entitlementLoading, refresh: refreshEntitlement } = useProEntitlement();
   const [step, setStep] = useState<Step>("welcome");
   const [phase, setPhase] = useState<Phase | null>(null);
   const [weeklyDeltaKg, setWeeklyDeltaKg] = useState<number | null>(null);
+
+  // Re-check entitlement when this screen regains focus — e.g. after the
+  // user purchases Pro on the paywall pushed from selectPhase below.
+  useFocusEffect(
+    useCallback(() => {
+      refreshEntitlement().catch(console.error);
+    }, [refreshEntitlement]),
+  );
 
   const finish = async (selectedPhase: Phase, deltaKg: number) => {
     try {
@@ -61,6 +69,9 @@ export default function OnboardingScreen() {
   };
 
   const selectPhase = (selected: Phase) => {
+    // Don't judge entitlement before the first check resolves — a subscribed
+    // user tapping early would be bounced to the paywall incorrectly.
+    if (selected !== "cut" && entitlementLoading) return;
     // Bulk and maintenance are Pro-only (CUTIOS-24) — upsell before continuing.
     if (selected !== "cut" && !entitled) {
       router.push("/paywall");

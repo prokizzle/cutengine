@@ -1,4 +1,4 @@
-import { requireNativeModule } from "expo-modules-core";
+import { requireOptionalNativeModule } from "expo-modules-core";
 
 // Readable/writable HKQuantityType identifiers supported by the native side.
 export type HealthKitTypeIdentifier =
@@ -12,7 +12,9 @@ export interface WeightSample {
   valueKg: number;
 }
 
-const NativeModule = requireNativeModule("ExpoHealthKit");
+// Optional resolution: the module is iOS-only, and eager requireNativeModule
+// would throw at import time on Android/web before lib-level Platform guards run.
+const NativeModule = requireOptionalNativeModule("ExpoHealthKit") as any;
 
 export default {
   /** Resolves false (without throwing) when Health data is unavailable. */

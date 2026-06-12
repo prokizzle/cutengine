@@ -38,6 +38,11 @@ public struct BiofeedbackEntry: Codable, Sendable, Identifiable, Equatable {
             guard !answer.questionID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
                 throw StoreError.invalidBiofeedbackEntry(reason: "Answer has empty questionID")
             }
+            guard !answer.prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                throw StoreError.invalidBiofeedbackEntry(
+                    reason: "Answer \(answer.questionID) has empty prompt"
+                )
+            }
             guard (1 ... 5).contains(answer.score) else {
                 throw StoreError.invalidBiofeedbackEntry(
                     reason: "Score \(answer.score) for \(answer.questionID) outside 1–5"

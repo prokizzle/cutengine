@@ -81,6 +81,14 @@ public struct UserProfile: Codable, Sendable, Equatable {
                     reason: "Macro override for \(phase.rawValue) contains a non-finite ratio"
                 )
             }
+            guard (0 ... 1).contains(ratio.protein),
+                  (0 ... 1).contains(ratio.carb),
+                  (0 ... 1).contains(ratio.fat)
+            else {
+                throw StoreError.invalidUserProfile(
+                    reason: "Macro override for \(phase.rawValue) has a ratio outside 0...1"
+                )
+            }
             guard (0.99 ... 1.01).contains(ratio.sum) else {
                 throw StoreError.invalidUserProfile(
                     reason: "Macro override for \(phase.rawValue) sums to \(ratio.sum); expected 0.99–1.01"

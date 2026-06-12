@@ -30,28 +30,44 @@ const PLATEAU_KG_PER_WEEK = 0.05;
 const SUSTAINED_KG_PER_WEEK = 0.15;
 const MIN_SAMPLES_PER_WINDOW = 3;
 
-function windowAverage(samples: WeightSample[], from: number, to: number): number | null {
-  const values = samples
-    .filter((s) => {
-      const t = new Date(s.date).getTime();
-      return !Number.isNaN(t) && t >= from && t < to;
-    })
-    .map((s) => s.kg);
+/** One representative weight per calendar day (the latest weigh-in wins), so
+ *  days with multiple entries don't outweigh single-entry days. */
+function collapseByDay(samples: WeightSample[]): { time: number; kg: number }[] {
+  const byDay = new Map<string, { time: number; kg: number }>();
+  for (const sample of samples) {
+    const time = new Date(sample.date).getTime();
+    if (Number.isNaN(time)) continue;
+    const dayKey = new Date(time).toISOString().slice(0, 10);
+    const existing = byDay.get(dayKey);
+    if (!existing || time > existing.time) {
+      byDay.set(dayKey, { time, kg: sample.kg });
+    }
+  }
+  return [...byDay.values()];
+}
+
+function windowAverage(
+  daily: { time: number; kg: number }[],
+  from: number,
+  to: number,
+): number | null {
+  const values = daily.filter((s) => s.time >= from && s.time < to).map((s) => s.kg);
   if (values.length < MIN_SAMPLES_PER_WINDOW) return null;
   return values.reduce((sum, v) => sum + v, 0) / values.length;
 }
 
 /** Rolling trend in kg/week from two adjacent 14-day windows, or null if
- *  either window has too few samples to be trustworthy. */
+ *  either window has too few sampled days to be trustworthy. */
 export function weightTrendKgPerWeek(
   samples: WeightSample[],
   now: Date = new Date(),
 ): number | null {
+  const daily = collapseByDay(samples);
   const end = now.getTime();
   const mid = end - WINDOW_DAYS * DAY_MS;
   const start = mid - WINDOW_DAYS * DAY_MS;
-  const recent = windowAverage(samples, mid, end);
-  const prior = windowAverage(samples, start, mid);
+  const recent = windowAverage(daily, mid, end);
+  const prior = windowAverage(daily, start, mid);
   if (recent == null || prior == null) return null;
   return (recent - prior) / (WINDOW_DAYS / 7);
 }

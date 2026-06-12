@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react-native";
 import { Platform } from "react-native";
 import type {
   BiofeedbackEntry,
@@ -19,6 +20,7 @@ export async function loadUserProfile(): Promise<UserProfile | null> {
     return await CycleStore.getUserProfile();
   } catch (err) {
     console.error("[CycleStore] getUserProfile error:", err);
+    Sentry.captureException(err);
     return null;
   }
 }
@@ -29,13 +31,18 @@ export async function persistUserProfile(profile: UserProfile): Promise<void> {
 }
 
 /** True when the singleton row exists — used to skip first-launch onboarding.
- *  Off-iOS returns true so the gate never traps non-iOS dev sessions. */
+ *  Off-iOS returns true so the gate never traps non-iOS dev sessions.
+ *  Errors deliberately fail OPEN (true): failing closed would re-run
+ *  onboarding for an existing user after a transient store error, and
+ *  completing it overwrites their saved profile. Failing open only means a
+ *  brand-new user lands on the dashboard with defaults, fixable in Settings. */
 export async function hasUserProfile(): Promise<boolean> {
   if (Platform.OS !== "ios") return true;
   try {
     return await CycleStore.hasUserProfile();
   } catch (err) {
     console.error("[CycleStore] hasUserProfile error:", err);
+    Sentry.captureException(err);
     return true;
   }
 }
@@ -46,6 +53,7 @@ export async function loadBiofeedbackEntries(): Promise<BiofeedbackEntry[]> {
     return await CycleStore.getBiofeedbackEntries();
   } catch (err) {
     console.error("[CycleStore] getBiofeedbackEntries error:", err);
+    Sentry.captureException(err);
     return [];
   }
 }

@@ -26,9 +26,10 @@ export function useHealthKit(): UseHealthKitResult {
   const [weightHistory, setWeightHistory] = useState<WeightSample[]>([]);
   const [weightInput, setWeightInput] = useState("");
 
-  const refreshHistory = useCallback(() => {
-    readWeightHistory().then(setWeightHistory).catch(console.error);
-  }, []);
+  const refreshHistory = useCallback(
+    () => readWeightHistory().then(setWeightHistory),
+    [],
+  );
 
   useEffect(() => {
     initHealthKit()
@@ -36,7 +37,7 @@ export function useHealthKit(): UseHealthKitResult {
         setReady(ok);
         if (ok) {
           readLatestWeight().then(setWeightKg).catch(console.error);
-          refreshHistory();
+          refreshHistory().catch(console.error);
         }
       })
       .catch(console.error);
@@ -50,13 +51,16 @@ export function useHealthKit(): UseHealthKitResult {
     }
     try {
       await writeWeight(kg);
-      setWeightKg(kg);
-      setWeightInput("");
-      refreshHistory();
-      Alert.alert("Saved", `Logged ${kg} kg to HealthKit`);
     } catch {
       Alert.alert("Error", "Failed to write weight to HealthKit");
+      return;
     }
+    setWeightKg(kg);
+    setWeightInput("");
+    // The write succeeded — a history refresh failure shouldn't read as a
+    // failed save, but wait for it so the trend engine sees the new sample.
+    await refreshHistory().catch(console.error);
+    Alert.alert("Saved", `Logged ${kg} kg to HealthKit`);
   }, [weightInput, refreshHistory]);
 
   return {

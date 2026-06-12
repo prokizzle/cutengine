@@ -1,4 +1,4 @@
-import { requireNativeModule } from "expo-modules-core";
+import { requireOptionalNativeModule } from "expo-modules-core";
 
 import type { UserProfile } from "./userProfile";
 import type { BiofeedbackEntry } from "./biofeedback";
@@ -78,8 +78,10 @@ export interface TodayEvent {
   weekLabel?: string;
 }
 
-// Native module — typed at call sites with explicit overloads
-const NativeModule = requireNativeModule("ExpoCycleStore");
+// Native module — typed at call sites with explicit overloads.
+// Optional resolution: the module is iOS-only, and eager requireNativeModule
+// would throw at import time on Android/web before lib-level Platform guards run.
+const NativeModule = requireOptionalNativeModule("ExpoCycleStore") as any;
 
 export default {
   initialize: (): Promise<void> => NativeModule.initialize(),

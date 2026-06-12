@@ -33,9 +33,10 @@ export const DEFAULT_WEEKLY_DELTA_KG: Record<Phase, number> = {
   maintenance: 0,
 };
 
-/** Override if present in `macroOverrides[phase]`, else the built-in default. */
+/** Override if present in `macroOverrides[phase]`, else the built-in default.
+ *  Returns a copy so callers can't mutate the profile or the defaults. */
 export function macroRatioFor(profile: UserProfile, phase: Phase): MacroRatio {
-  return profile.macroOverrides[phase] ?? DEFAULT_MACROS[phase];
+  return { ...(profile.macroOverrides[phase] ?? DEFAULT_MACROS[phase]) };
 }
 
 /**
