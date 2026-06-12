@@ -16,7 +16,7 @@ import type { BiofeedbackAnswer } from "../../modules/expo-cycle-store/src/biofe
 import { questionsForPhase } from "../../utils/biofeedback";
 import { dailyTargetKcal, macroGramsFor } from "../../utils/calorieTargets";
 import { phaseDurationWeeks } from "../../utils/phase";
-import { suggestPhaseChange, type WeightSample } from "../../utils/phaseSuggestion";
+import { suggestPhaseChange } from "../../utils/phaseSuggestion";
 import { uuidv4 } from "../../utils/uuid";
 import type { DoseEvent } from "../../types/timeline";
 
@@ -31,15 +31,13 @@ const MOCK_DOSE_EVENTS: DoseEvent[] = [
 
 // Mock until the adaptive TDEE engine (expo-calorie-engine) ships.
 const MOCK_TDEE = 2400;
-// Mock weight history until expo-healthkit grows a samples query.
-const MOCK_WEIGHT_HISTORY: WeightSample[] = [];
 
 function isSameDay(a: Date, b: Date): boolean {
   return a.toDateString() === b.toDateString();
 }
 
 export default function TodayScreen() {
-  const { ready, weightKg, weightLbs, weightInput, setWeightInput, logWeight } =
+  const { ready, weightKg, weightLbs, weightHistory, weightInput, setWeightInput, logWeight } =
     useHealthKit();
   const { profile } = useUserProfile();
   const [checkedInToday, setCheckedInToday] = useState(false);
@@ -77,10 +75,7 @@ export default function TodayScreen() {
     ? macroGramsFor(calorieTarget, macroRatioFor(profile, phase))
     : { protein: 185, carbs: 160, fat: 55 };
 
-  const history: WeightSample[] = weightKg
-    ? [...MOCK_WEIGHT_HISTORY, { date: new Date().toISOString(), kg: weightKg }]
-    : MOCK_WEIGHT_HISTORY;
-  const suggestion = profile ? suggestPhaseChange(history, profile) : null;
+  const suggestion = profile ? suggestPhaseChange(weightHistory, profile) : null;
 
   return (
     <SafeAreaView className="flex-1 bg-surface-primary">
