@@ -16,6 +16,7 @@ enum BridgeConversionError: LocalizedError {
     case invalidEndWeek(Int)
     case invalidPhase(String)
     case invalidMacroRatio(String)
+    case invalidBiofeedbackAnswer(String)
 
     var errorDescription: String? {
         switch self {
@@ -47,6 +48,8 @@ enum BridgeConversionError: LocalizedError {
             return "Invalid phase: \(value)"
         case .invalidMacroRatio(let value):
             return "Invalid macro ratio for phase: \(value)"
+        case .invalidBiofeedbackAnswer(let reason):
+            return "Invalid biofeedback answer: \(reason)"
         }
     }
 }
@@ -324,6 +327,15 @@ struct UserProfileRecord: Record {
             guard let protein = values["protein"], let carb = values["carb"], let fat = values["fat"] else {
                 throw BridgeConversionError.invalidMacroRatio(key)
             }
+            let total = protein + carb + fat
+            guard
+                (0 ... 1).contains(protein),
+                (0 ... 1).contains(carb),
+                (0 ... 1).contains(fat),
+                abs(total - 1) < 0.000_001
+            else {
+                throw BridgeConversionError.invalidMacroRatio(key)
+            }
             overrides[overridePhase] = MacroRatio(protein: protein, carb: carb, fat: fat)
         }
         // The profile is a singleton — ignore whatever id JS sent so reads,
@@ -351,8 +363,16 @@ struct BiofeedbackAnswerRecord: Record {
         score = answer.score
     }
 
-    func toAnswer() -> BiofeedbackAnswer {
-        BiofeedbackAnswer(questionID: questionID, prompt: prompt, score: score)
+    func toAnswer() throws -> BiofeedbackAnswer {
+        guard !questionID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw BridgeConversionError.invalidBiofeedbackAnswer("questionID is empty")
+        }
+        guard (1 ... 5).contains(score) else {
+            throw BridgeConversionError.invalidBiofeedbackAnswer(
+                "score \(score) for \(questionID) outside 1–5"
+            )
+        }
+        return BiofeedbackAnswer(questionID: questionID, prompt: prompt, score: score)
     }
 }
 
@@ -379,7 +399,7 @@ struct BiofeedbackEntryRecord: Record {
             id: try uuid(id),
             date: try BridgeDate.decode(date),
             phase: parsedPhase,
-            answers: answers.map { $0.toAnswer() }
+            answers: try answers.map { try $0.toAnswer() }
         )
     }
 }
