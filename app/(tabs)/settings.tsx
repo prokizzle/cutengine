@@ -1,6 +1,9 @@
 import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { PhaseSettings } from "../../components/settings/PhaseSettings";
+import { useProEntitlement } from "../../hooks/useProEntitlement";
+import { useUserProfile } from "../../hooks/useUserProfile";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -22,11 +25,25 @@ function Divider() { return <View className="h-px bg-white/5 mx-4" />; }
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const { profile, switchPhase, setWeeklyDelta, overrideMacros } = useUserProfile();
+  const { entitled } = useProEntitlement();
 
   return (
     <SafeAreaView className="flex-1 bg-surface-primary">
       <ScrollView className="flex-1" contentContainerStyle={{ paddingTop: 12, paddingBottom: 40 }}>
         <Text className="text-text-primary text-2xl font-bold px-5 mb-5">Settings</Text>
+        {profile && (
+          <Section title="PHASE">
+            <PhaseSettings
+              profile={profile}
+              entitled={entitled}
+              onSwitchPhase={(phase) => { switchPhase(phase).catch(console.error); }}
+              onSelectWeeklyDelta={(kg) => { setWeeklyDelta(kg).catch(console.error); }}
+              onEditMacros={(phase, ratio) => { overrideMacros(phase, ratio).catch(console.error); }}
+              onRequirePro={() => router.push("/paywall")}
+            />
+          </Section>
+        )}
         <Section title="PROFILE">
           <Row label="Height" value={`5'10″`} onPress={() => Alert.alert("TODO")} /><Divider />
           <Row label="Date of Birth" value="Jan 15, 1990" onPress={() => Alert.alert("TODO")} /><Divider />

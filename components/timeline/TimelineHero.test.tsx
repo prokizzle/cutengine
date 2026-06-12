@@ -38,4 +38,29 @@ describe("TimelineHero", () => {
     expect(screen.queryByText("+0")).toBeNull();
     expect(screen.queryByText("-0")).toBeNull();
   });
+
+  it("colors a deficit green during a cut", () => {
+    render(<TimelineHero {...base} phase="cut" calorieDelta={-85} />);
+    expect(screen.getByText("-85").props.className).toContain("text-positive");
+  });
+
+  it("colors a deficit red during a bulk (missing the surplus)", () => {
+    render(<TimelineHero {...base} phase="bulk" calorieDelta={-85} />);
+    expect(screen.getByText("-85").props.className).toContain("text-warning");
+  });
+
+  it("colors a surplus green during a bulk", () => {
+    render(<TimelineHero {...base} phase="bulk" calorieDelta={120} />);
+    expect(screen.getByText("+120").props.className).toContain("text-positive");
+  });
+
+  it("treats small deltas as on-plan during maintenance", () => {
+    render(<TimelineHero {...base} phase="maintenance" calorieDelta={50} />);
+    expect(screen.getByText("+50").props.className).toContain("text-positive");
+  });
+
+  it("colors weight gain green during a bulk", () => {
+    render(<TimelineHero {...base} phase="bulk" weightDelta={1.2} />);
+    expect(screen.getByText("+1.2").props.className).toContain("text-positive");
+  });
 });

@@ -121,6 +121,79 @@ public final class DoseRuleEntity {
     }
 }
 
+/// SwiftData entity for the UserProfile singleton.
+@Model
+public final class UserProfileEntity {
+    @Attribute(.unique) public var id: String
+    public var currentPhaseRaw: String
+    public var phaseStartDate: Date
+    public var macroOverridesData: Data?
+    public var targetWeightDeltaPerWeekKg: Double
+
+    public init(from profile: UserProfile) throws {
+        self.id = profile.id
+        self.currentPhaseRaw = profile.currentPhase.rawValue
+        self.phaseStartDate = profile.phaseStartDate
+        self.macroOverridesData = try JSONEncoder().encode(profile.macroOverrides)
+        self.targetWeightDeltaPerWeekKg = profile.targetWeightDeltaPerWeekKg
+    }
+
+    private func decodedMacroOverrides() throws -> [Phase: MacroRatio] {
+        guard let data = macroOverridesData else { return [:] }
+        do {
+            return try JSONDecoder().decode([Phase: MacroRatio].self, from: data)
+        } catch {
+            throw StoreError.invalidUserProfileData
+        }
+    }
+
+    public func toStruct() throws -> UserProfile {
+        UserProfile(
+            id: id,
+            currentPhase: Phase(rawValue: currentPhaseRaw) ?? .cut,
+            phaseStartDate: phaseStartDate,
+            macroOverrides: try decodedMacroOverrides(),
+            targetWeightDeltaPerWeekKg: targetWeightDeltaPerWeekKg
+        )
+    }
+}
+
+/// SwiftData entity for BiofeedbackEntry.
+@Model
+public final class BiofeedbackEntryEntity {
+    @Attribute(.unique) public var id: UUID
+    public var date: Date
+    public var phaseRaw: String
+    public var answersData: Data?
+
+    public init(from entry: BiofeedbackEntry) throws {
+        self.id = entry.id
+        self.date = entry.date
+        self.phaseRaw = entry.phase.rawValue
+        self.answersData = try JSONEncoder().encode(entry.answers)
+    }
+
+    private func decodedAnswers() throws -> [BiofeedbackAnswer] {
+        guard let data = answersData else {
+            throw StoreError.missingAnswersData(entryID: id)
+        }
+        do {
+            return try JSONDecoder().decode([BiofeedbackAnswer].self, from: data)
+        } catch {
+            throw StoreError.invalidAnswersData(entryID: id)
+        }
+    }
+
+    public func toStruct() throws -> BiofeedbackEntry {
+        BiofeedbackEntry(
+            id: id,
+            date: date,
+            phase: Phase(rawValue: phaseRaw) ?? .cut,
+            answers: try decodedAnswers()
+        )
+    }
+}
+
 /// SwiftData entity for MealRule.
 @Model
 public final class MealRuleEntity {

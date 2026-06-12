@@ -32,6 +32,8 @@ public actor CycleStore {
             ScheduleEntity.self,
             DoseRuleEntity.self,
             MealRuleEntity.self,
+            UserProfileEntity.self,
+            BiofeedbackEntryEntity.self,
         ])
 
         if useInMemory {
@@ -56,6 +58,14 @@ public actor CycleStore {
         )
         container = try ModelContainer(for: schema, configurations: config)
         context = ModelContext(try modelContainer)
+    }
+
+    /// Initialize over an existing container — a second store sharing the same
+    /// backing data, the same shape CardioEngine uses against the App Group.
+    public func initialize(container existing: ModelContainer) {
+        guard container == nil else { return }
+        container = existing
+        context = ModelContext(existing)
     }
 
     public var modelContainer: ModelContainer {
@@ -236,6 +246,100 @@ public actor CycleStore {
         }
     }
 
+    // MARK: - User Profile
+
+    /// Returns the singleton profile, inserting the default on first fetch.
+    /// Never returns nil — eliminates a nullable branch at every consumer.
+    public func userProfile() throws -> UserProfile {
+        let ctx = try modelContext()
+        if let existing = try fetchUserProfileEntity(in: ctx) {
+            return try existing.toStruct()
+        }
+        let profile = UserProfile.makeDefault()
+        ctx.insert(try UserProfileEntity(from: profile))
+        try ctx.save()
+        return profile
+    }
+
+    /// Whether the singleton row exists yet (without creating it).
+    /// Used by the app to decide if first-launch onboarding should run.
+    public func hasUserProfile() throws -> Bool {
+        let ctx = try modelContext()
+        return try fetchUserProfileEntity(in: ctx) != nil
+    }
+
+    /// Validates and persists the singleton. The stored row always uses
+    /// `UserProfile.singletonID` regardless of the id on the incoming value.
+    public func saveUserProfile(_ profile: UserProfile) throws {
+        try profile.validate()
+        let ctx = try modelContext()
+        if let existing = try fetchUserProfileEntity(in: ctx) {
+            existing.currentPhaseRaw = profile.currentPhase.rawValue
+            existing.phaseStartDate = profile.phaseStartDate
+            existing.macroOverridesData = try JSONEncoder().encode(profile.macroOverrides)
+            existing.targetWeightDeltaPerWeekKg = profile.targetWeightDeltaPerWeekKg
+        } else {
+            var normalized = profile
+            if profile.id != UserProfile.singletonID {
+                normalized = UserProfile(
+                    currentPhase: profile.currentPhase,
+                    phaseStartDate: profile.phaseStartDate,
+                    macroOverrides: profile.macroOverrides,
+                    targetWeightDeltaPerWeekKg: profile.targetWeightDeltaPerWeekKg
+                )
+            }
+            ctx.insert(try UserProfileEntity(from: normalized))
+        }
+        try ctx.save()
+    }
+
+    private func fetchUserProfileEntity(in ctx: ModelContext) throws -> UserProfileEntity? {
+        let singletonID = UserProfile.singletonID
+        let descriptor = FetchDescriptor<UserProfileEntity>(
+            predicate: #Predicate { $0.id == singletonID }
+        )
+        return try ctx.fetch(descriptor).first
+    }
+
+    // MARK: - Biofeedback
+
+    public func allBiofeedbackEntries() throws -> [BiofeedbackEntry] {
+        let ctx = try modelContext()
+        let descriptor = FetchDescriptor<BiofeedbackEntryEntity>(
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
+        )
+        return try ctx.fetch(descriptor).map { try $0.toStruct() }
+    }
+
+    public func saveBiofeedbackEntry(_ entry: BiofeedbackEntry) throws {
+        try entry.validate()
+        let ctx = try modelContext()
+        let entryID = entry.id
+        let descriptor = FetchDescriptor<BiofeedbackEntryEntity>(
+            predicate: #Predicate { $0.id == entryID }
+        )
+        if let existing = try ctx.fetch(descriptor).first {
+            existing.date = entry.date
+            existing.phaseRaw = entry.phase.rawValue
+            existing.answersData = try JSONEncoder().encode(entry.answers)
+        } else {
+            ctx.insert(try BiofeedbackEntryEntity(from: entry))
+        }
+        try ctx.save()
+    }
+
+    public func deleteBiofeedbackEntry(id: UUID) throws {
+        let ctx = try modelContext()
+        let entryID = id
+        let descriptor = FetchDescriptor<BiofeedbackEntryEntity>(
+            predicate: #Predicate { $0.id == entryID }
+        )
+        if let entity = try ctx.fetch(descriptor).first {
+            ctx.delete(entity)
+            try ctx.save()
+        }
+    }
+
     // MARK: - Meal Rules
 
     public func mealRules(for scheduleID: UUID) throws -> [MealRule] {
@@ -286,6 +390,11 @@ public enum StoreError: LocalizedError {
     case invalidCadenceData(ruleID: UUID)
     case missingItemsData(ruleID: UUID)
     case invalidItemsData(ruleID: UUID)
+    case invalidUserProfile(reason: String)
+    case invalidUserProfileData
+    case invalidBiofeedbackEntry(reason: String)
+    case missingAnswersData(entryID: UUID)
+    case invalidAnswersData(entryID: UUID)
 
     public var errorDescription: String? {
         switch self {
@@ -301,6 +410,16 @@ public enum StoreError: LocalizedError {
             "Meal rule \(ruleID) is missing items data."
         case .invalidItemsData(let ruleID):
             "Meal rule \(ruleID) has invalid items data."
+        case .invalidUserProfile(let reason):
+            "Invalid user profile: \(reason)"
+        case .invalidUserProfileData:
+            "User profile has invalid macro overrides data."
+        case .invalidBiofeedbackEntry(let reason):
+            "Invalid biofeedback entry: \(reason)"
+        case .missingAnswersData(let entryID):
+            "Biofeedback entry \(entryID) is missing answers data."
+        case .invalidAnswersData(let entryID):
+            "Biofeedback entry \(entryID) has invalid answers data."
         }
     }
 }

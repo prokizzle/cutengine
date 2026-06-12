@@ -48,6 +48,34 @@ public class ExpoCycleStoreModule: Module {
             try await CycleStore.shared.saveDoseRules(parsedRules, for: try uuid(scheduleID))
         }
 
+        // MARK: - User Profile
+
+        AsyncFunction("getUserProfile") { () -> UserProfileRecord in
+            UserProfileRecord(try await CycleStore.shared.userProfile())
+        }
+
+        AsyncFunction("hasUserProfile") { () -> Bool in
+            try await CycleStore.shared.hasUserProfile()
+        }
+
+        AsyncFunction("saveUserProfile") { (profile: UserProfileRecord) in
+            try await CycleStore.shared.saveUserProfile(try profile.toUserProfile())
+        }
+
+        // MARK: - Biofeedback
+
+        AsyncFunction("getBiofeedbackEntries") { () -> [BiofeedbackEntryRecord] in
+            try await CycleStore.shared.allBiofeedbackEntries().map(BiofeedbackEntryRecord.init)
+        }
+
+        AsyncFunction("saveBiofeedbackEntry") { (entry: BiofeedbackEntryRecord) in
+            try await CycleStore.shared.saveBiofeedbackEntry(try entry.toEntry())
+        }
+
+        AsyncFunction("deleteBiofeedbackEntry") { (id: String) in
+            try await CycleStore.shared.deleteBiofeedbackEntry(id: try uuid(id))
+        }
+
         // MARK: - Meal Rules
 
         AsyncFunction("getMealRules") { (scheduleID: String) -> [MealRuleRecord] in

@@ -129,4 +129,175 @@ struct CycleStoreTests {
             #expect(Compound.Route(rawValue: route.rawValue) == route)
         }
     }
+
+    // MARK: - User Profile
+
+    @Test("first fetch creates the default singleton")
+    func userProfileDefaultCreation() async throws {
+        let store = try await CycleStore.inMemory()
+
+        #expect(try await store.hasUserProfile() == false)
+
+        let profile = try await store.userProfile()
+        #expect(profile.id == UserProfile.singletonID)
+        #expect(profile.currentPhase == .cut)
+        #expect(profile.macroOverrides.isEmpty)
+        #expect(profile.targetWeightDeltaPerWeekKg == -0.5)
+        #expect(try await store.hasUserProfile() == true)
+    }
+
+    @Test("save then fetch round-trips the profile")
+    func userProfileRoundTrip() async throws {
+        let store = try await CycleStore.inMemory()
+
+        var profile = try await store.userProfile()
+        profile.currentPhase = .bulk
+        profile.targetWeightDeltaPerWeekKg = 0.25
+        profile.macroOverrides[.bulk] = MacroRatio(protein: 0.35, carb: 0.40, fat: 0.25)
+        try await store.saveUserProfile(profile)
+
+        let fetched = try await store.userProfile()
+        #expect(fetched == profile)
+    }
+
+    @Test("second save mutates the same singleton — no duplicate rows")
+    func userProfileSingleton() async throws {
+        let store = try await CycleStore.inMemory()
+
+        var profile = try await store.userProfile()
+        profile.currentPhase = .maintenance
+        try await store.saveUserProfile(profile)
+        profile.currentPhase = .bulk
+        try await store.saveUserProfile(profile)
+
+        let ctx = ModelContext(try await store.modelContainer)
+        let rows = try ctx.fetch(FetchDescriptor<UserProfileEntity>())
+        #expect(rows.count == 1)
+        #expect(try await store.userProfile().currentPhase == .bulk)
+    }
+
+    @Test("macroRatio(for:) returns default when absent, override when present")
+    func macroRatioDefaultsAndOverrides() throws {
+        var profile = UserProfile.makeDefault()
+        #expect(profile.macroRatio(for: .cut) == MacroRatio(protein: 0.40, carb: 0.30, fat: 0.30))
+        #expect(profile.macroRatio(for: .bulk) == MacroRatio(protein: 0.30, carb: 0.45, fat: 0.25))
+        #expect(profile.macroRatio(for: .maintenance) == MacroRatio(protein: 0.30, carb: 0.40, fat: 0.30))
+
+        let override = MacroRatio(protein: 0.45, carb: 0.35, fat: 0.20)
+        profile.macroOverrides[.cut] = override
+        #expect(profile.macroRatio(for: .cut) == override)
+        #expect(profile.macroRatio(for: .bulk) == MacroRatio(protein: 0.30, carb: 0.45, fat: 0.25))
+    }
+
+    @Test("invalid macro ratio sum throws invalidUserProfile")
+    func invalidRatioSumThrows() async throws {
+        let store = try await CycleStore.inMemory()
+
+        var profile = try await store.userProfile()
+        profile.macroOverrides[.cut] = MacroRatio(protein: 0.4, carb: 0.4, fat: 0.4)
+
+        await #expect(throws: StoreError.self) {
+            try await store.saveUserProfile(profile)
+        }
+    }
+
+    @Test("non-finite macro ratio throws invalidUserProfile")
+    func nonFiniteRatioThrows() async throws {
+        let store = try await CycleStore.inMemory()
+
+        var profile = try await store.userProfile()
+        profile.macroOverrides[.bulk] = MacroRatio(protein: .nan, carb: 0.45, fat: 0.25)
+
+        await #expect(throws: StoreError.self) {
+            try await store.saveUserProfile(profile)
+        }
+    }
+
+    @Test("weekly delta outside [-1.5, 1.5] throws invalidUserProfile")
+    func invalidWeeklyDeltaThrows() async throws {
+        let store = try await CycleStore.inMemory()
+
+        var profile = try await store.userProfile()
+        profile.targetWeightDeltaPerWeekKg = 10
+
+        await #expect(throws: StoreError.self) {
+            try await store.saveUserProfile(profile)
+        }
+    }
+
+    @Test("second store over the same container observes the saved profile")
+    func secondStoreObservesProfile() async throws {
+        let store = try await CycleStore.inMemory()
+
+        var profile = try await store.userProfile()
+        profile.currentPhase = .bulk
+        profile.targetWeightDeltaPerWeekKg = 0.3
+        try await store.saveUserProfile(profile)
+
+        let secondStore = CycleStore()
+        await secondStore.initialize(container: try await store.modelContainer)
+
+        let observed = try await secondStore.userProfile()
+        #expect(observed.currentPhase == .bulk)
+        #expect(observed.targetWeightDeltaPerWeekKg == 0.3)
+    }
+
+    // MARK: - Biofeedback
+
+    @Test("save and retrieve biofeedback entries, newest first")
+    func biofeedbackCRUD() async throws {
+        let store = try await CycleStore.inMemory()
+
+        let older = BiofeedbackEntry(
+            date: Date(timeIntervalSinceNow: -86_400),
+            phase: .cut,
+            answers: [BiofeedbackAnswer(questionID: "hunger", prompt: "How was your hunger?", score: 3)]
+        )
+        let newer = BiofeedbackEntry(
+            date: Date(),
+            phase: .bulk,
+            answers: [
+                BiofeedbackAnswer(questionID: "training-intensity", prompt: "Training intensity?", score: 5),
+                BiofeedbackAnswer(questionID: "appetite", prompt: "Appetite?", score: 4),
+            ]
+        )
+        try await store.saveBiofeedbackEntry(older)
+        try await store.saveBiofeedbackEntry(newer)
+
+        let entries = try await store.allBiofeedbackEntries()
+        #expect(entries.count == 2)
+        #expect(entries[0].id == newer.id)
+        #expect(entries[0].phase == .bulk)
+        #expect(entries[0].answers.count == 2)
+        #expect(entries[1].answers[0].prompt == "How was your hunger?")
+
+        try await store.deleteBiofeedbackEntry(id: older.id)
+        #expect(try await store.allBiofeedbackEntries().count == 1)
+    }
+
+    @Test("out-of-range biofeedback score throws")
+    func biofeedbackInvalidScoreThrows() async throws {
+        let store = try await CycleStore.inMemory()
+
+        let entry = BiofeedbackEntry(
+            date: Date(),
+            phase: .cut,
+            answers: [BiofeedbackAnswer(questionID: "hunger", prompt: "Hunger?", score: 9)]
+        )
+
+        await #expect(throws: StoreError.self) {
+            try await store.saveBiofeedbackEntry(entry)
+        }
+    }
+
+    @Test("empty biofeedback answers throws")
+    func biofeedbackEmptyAnswersThrows() async throws {
+        let store = try await CycleStore.inMemory()
+
+        let entry = BiofeedbackEntry(date: Date(), phase: .cut, answers: [])
+
+        await #expect(throws: StoreError.self) {
+            try await store.saveBiofeedbackEntry(entry)
+        }
+    }
 }
