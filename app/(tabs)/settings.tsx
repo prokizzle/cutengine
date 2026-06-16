@@ -1,11 +1,14 @@
 import * as Sentry from "@sentry/react-native";
+import { useState } from "react";
 import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import * as Updates from "expo-updates";
 import { PhaseSettings } from "../../components/settings/PhaseSettings";
 import { useProEntitlement } from "../../hooks/useProEntitlement";
 import { useUserProfile } from "../../hooks/useUserProfile";
+import { applyUpdate, checkAndFetchUpdate } from "../../lib/ota";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -31,10 +34,38 @@ export default function SettingsScreen() {
   const router = useRouter();
   const { profile, switchPhase, setWeeklyDelta, overrideMacros } = useUserProfile();
   const { entitled } = useProEntitlement();
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
+  const channel = Updates.channel ?? "embedded";
+  const updateId = Updates.updateId?.slice(0, 8) ?? "none";
 
   const reportSaveFailure = (err: unknown) => {
     Sentry.captureException(err);
     Alert.alert("Couldn't save", "Your phase settings didn't save. Please try again.");
+  };
+
+  const onCheckForUpdates = async () => {
+    if (!Updates.isEnabled) {
+      Alert.alert("Updates disabled", "OTA updates only run in release builds.");
+      return;
+    }
+    setCheckingUpdate(true);
+    try {
+      const staged = await checkAndFetchUpdate();
+      if (staged) {
+        Alert.alert(
+          "Update ready",
+          "Restart now to apply?",
+          [
+            { text: "Later", style: "cancel" },
+            { text: "Restart", onPress: () => { applyUpdate().catch(Sentry.captureException); } },
+          ],
+        );
+      } else {
+        Alert.alert("Up to date", "You're on the latest build for this channel.");
+      }
+    } finally {
+      setCheckingUpdate(false);
+    }
   };
 
   return (
@@ -72,6 +103,12 @@ export default function SettingsScreen() {
         </Section>
         <Section title="ABOUT">
           <Row label="Version" value="2.0.0" /><Divider />
+          <Row label="Update channel" value={channel} /><Divider />
+          <Row label="Bundle" value={updateId} /><Divider />
+          <Row
+            label={checkingUpdate ? "Checking…" : "Check for updates"}
+            onPress={checkingUpdate ? undefined : onCheckForUpdates}
+          /><Divider />
           <Row label="Privacy Policy" onPress={() => Alert.alert("TODO")} /><Divider />
           <Row label="Terms of Service" onPress={() => Alert.alert("TODO")} />
         </Section>
