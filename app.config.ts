@@ -10,6 +10,7 @@ const config: ExpoConfig = {
   icon: "./assets/icon.png",
   scheme: "cutengine",
   userInterfaceStyle: "dark",
+  newArchEnabled: true,
   ios: {
     supportsTablet: true,
     // @ts-expect-error - appleId is a valid Expo CLI runtime field used for App Store Connect lookups, but is not yet in @expo/config-types. Remove this directive once the type is added upstream.
