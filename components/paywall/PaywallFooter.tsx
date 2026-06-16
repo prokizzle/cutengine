@@ -1,4 +1,5 @@
 import { Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet } from "react-native-unistyles";
 
 type Props = {
   restoring: boolean;
@@ -7,17 +8,40 @@ type Props = {
 
 export function PaywallFooter({ restoring, onRestore }: Props) {
   return (
-    <View className="px-5 mt-6 items-center gap-3">
+    <View style={styles.container}>
       <TouchableOpacity onPress={onRestore} disabled={restoring}>
-        <Text className="text-info text-sm font-medium">
+        <Text style={styles.restore}>
           {restoring ? "Restoring..." : "Restore Purchases"}
         </Text>
       </TouchableOpacity>
-      <Text className="text-text-tertiary text-xs text-center px-4">
+      <Text style={styles.disclaimer}>
         Payment charged to your Apple ID. Auto-renews unless cancelled 24h
         before period ends.{"\n"}
-        <Text className="text-info/70">Terms · Privacy</Text>
+        <Text style={styles.terms}>Terms · Privacy</Text>
       </Text>
     </View>
   );
 }
+
+const styles = StyleSheet.create((theme) => ({
+  container: {
+    paddingHorizontal: 20,
+    marginTop: 24,
+    alignItems: "center",
+    gap: 12,
+  },
+  restore: {
+    color: theme.colors.info,
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.medium,
+  },
+  disclaimer: {
+    color: theme.colors.textTertiary,
+    fontSize: theme.fontSize.xs,
+    textAlign: "center",
+    paddingHorizontal: 16,
+  },
+  terms: {
+    color: "rgba(0,122,255,0.7)",
+  },
+}));

@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet } from "react-native-unistyles";
 import type { BiofeedbackAnswer } from "../../modules/expo-cycle-store/src/biofeedback";
 import { buildAnswers, type BiofeedbackQuestion } from "../../utils/biofeedback";
 
 type Props = {
   questions: BiofeedbackQuestion[];
-  /** True once an entry exists for today — collapses to a done state. */
   completedToday: boolean;
   onSubmit: (answers: BiofeedbackAnswer[]) => void;
 };
@@ -22,41 +22,41 @@ function ScoreRow({
   onSelect: (score: number) => void;
 }) {
   return (
-    <View className="mb-4">
-      <Text className="text-text-primary text-sm mb-2">{question.prompt}</Text>
-      <View className="flex-row gap-2">
-        {SCORES.map((score) => (
-          <TouchableOpacity
-            key={score}
-            accessibilityLabel={`${question.prompt} — ${score} of 5`}
-            className={`flex-1 items-center py-2 rounded-xl ${
-              value === score ? "bg-positive/20 border border-positive" : "bg-surface-tertiary"
-            }`}
-            onPress={() => onSelect(score)}
-          >
-            <Text className={value === score ? "text-positive font-bold" : "text-text-secondary"}>
-              {score}
-            </Text>
-          </TouchableOpacity>
-        ))}
+    <View style={styles.scoreRow}>
+      <Text style={styles.prompt}>{question.prompt}</Text>
+      <View style={styles.scoreButtons}>
+        {SCORES.map((score) => {
+          const active = value === score;
+          return (
+            <TouchableOpacity
+              key={score}
+              accessibilityLabel={`${question.prompt} — ${score} of 5`}
+              style={[styles.scoreButton, active ? styles.scoreButtonActive : styles.scoreButtonInactive]}
+              onPress={() => onSelect(score)}
+            >
+              <Text style={active ? styles.scoreTextActive : styles.scoreTextInactive}>
+                {score}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
-      <View className="flex-row justify-between mt-1">
-        <Text className="text-text-tertiary text-[10px]">{question.minLabel}</Text>
-        <Text className="text-text-tertiary text-[10px]">{question.maxLabel}</Text>
+      <View style={styles.labelRow}>
+        <Text style={styles.labelText}>{question.minLabel}</Text>
+        <Text style={styles.labelText}>{question.maxLabel}</Text>
       </View>
     </View>
   );
 }
 
-/** Daily biofeedback check-in — questions adapt to the current phase. */
 export function CheckInCard({ questions, completedToday, onSubmit }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [scores, setScores] = useState<Record<string, number | undefined>>({});
 
   if (completedToday) {
     return (
-      <View className="mx-5 mb-4 bg-surface-secondary rounded-2xl p-4">
-        <Text className="text-positive text-sm font-medium">✓ Check-in logged for today</Text>
+      <View style={styles.card}>
+        <Text style={styles.doneText}>✓ Check-in logged for today</Text>
       </View>
     );
   }
@@ -64,12 +64,12 @@ export function CheckInCard({ questions, completedToday, onSubmit }: Props) {
   if (!expanded) {
     return (
       <TouchableOpacity
-        className="mx-5 mb-4 bg-surface-secondary rounded-2xl p-4"
+        style={styles.card}
         onPress={() => setExpanded(true)}
         accessibilityLabel="Start daily check-in"
       >
-        <Text className="text-text-primary text-base font-semibold">Daily check-in</Text>
-        <Text className="text-text-tertiary text-sm mt-0.5">
+        <Text style={styles.cardTitle}>Daily check-in</Text>
+        <Text style={styles.cardSubtitle}>
           {questions.length} quick questions for your current phase
         </Text>
       </TouchableOpacity>
@@ -80,8 +80,8 @@ export function CheckInCard({ questions, completedToday, onSubmit }: Props) {
   const complete = answers.length === questions.length;
 
   return (
-    <View className="mx-5 mb-4 bg-surface-secondary rounded-2xl p-4">
-      <Text className="text-text-primary text-base font-semibold mb-4">Daily check-in</Text>
+    <View style={styles.card}>
+      <Text style={styles.expandedTitle}>Daily check-in</Text>
       {questions.map((question) => (
         <ScoreRow
           key={question.id}
@@ -92,14 +92,103 @@ export function CheckInCard({ questions, completedToday, onSubmit }: Props) {
       ))}
       <TouchableOpacity
         disabled={!complete}
-        className={`items-center py-3 rounded-xl ${complete ? "bg-positive" : "bg-surface-tertiary"}`}
+        style={[styles.submitButton, complete ? styles.submitButtonActive : styles.submitButtonInactive]}
         onPress={() => onSubmit(answers)}
         accessibilityLabel="Save check-in"
       >
-        <Text className={complete ? "text-surface-primary font-bold" : "text-text-tertiary"}>
+        <Text style={complete ? styles.submitTextActive : styles.submitTextInactive}>
           Save check-in
         </Text>
       </TouchableOpacity>
     </View>
   );
 }
+
+const styles = StyleSheet.create((theme) => ({
+  card: {
+    marginHorizontal: 20,
+    marginBottom: 16,
+    backgroundColor: theme.colors.surfaceSecondary,
+    borderRadius: 16,
+    padding: 16,
+  },
+  doneText: {
+    color: theme.colors.positive,
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.medium,
+  },
+  cardTitle: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.semibold,
+  },
+  cardSubtitle: {
+    color: theme.colors.textTertiary,
+    fontSize: theme.fontSize.sm,
+    marginTop: 2,
+  },
+  expandedTitle: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.semibold,
+    marginBottom: 16,
+  },
+  scoreRow: { marginBottom: 16 },
+  prompt: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.fontSize.sm,
+    marginBottom: 8,
+  },
+  scoreButtons: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  scoreButton: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: 8,
+    borderRadius: theme.radius.xl,
+  },
+  scoreButtonActive: {
+    backgroundColor: "rgba(52,199,89,0.2)",
+    borderWidth: 1,
+    borderColor: theme.colors.positive,
+  },
+  scoreButtonInactive: {
+    backgroundColor: theme.colors.surfaceTertiary,
+  },
+  scoreTextActive: {
+    color: theme.colors.positive,
+    fontWeight: theme.fontWeight.bold,
+  },
+  scoreTextInactive: {
+    color: theme.colors.textSecondary,
+  },
+  labelRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 4,
+  },
+  labelText: {
+    color: theme.colors.textTertiary,
+    fontSize: 10,
+  },
+  submitButton: {
+    alignItems: "center",
+    paddingVertical: 12,
+    borderRadius: theme.radius.xl,
+  },
+  submitButtonActive: {
+    backgroundColor: theme.colors.positive,
+  },
+  submitButtonInactive: {
+    backgroundColor: theme.colors.surfaceTertiary,
+  },
+  submitTextActive: {
+    color: theme.colors.surfacePrimary,
+    fontWeight: theme.fontWeight.bold,
+  },
+  submitTextInactive: {
+    color: theme.colors.textTertiary,
+  },
+}));

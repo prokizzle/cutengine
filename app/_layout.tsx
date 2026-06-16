@@ -1,4 +1,4 @@
-import "../global.css";
+import "../unistyles";
 
 import * as Sentry from "@sentry/react-native";
 import { Stack } from "expo-router";

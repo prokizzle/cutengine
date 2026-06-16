@@ -1,4 +1,5 @@
 import { Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet } from "react-native-unistyles";
 import type { DoseEvent } from "../../types/timeline";
 
 type Props = {
@@ -9,42 +10,28 @@ type Props = {
 export function DoseRow({ event, onPress }: Props) {
   return (
     <TouchableOpacity
-      className="flex-row items-center px-4 py-3.5"
+      style={styles.row}
       activeOpacity={0.6}
       onPress={onPress ? () => onPress(event) : undefined}
     >
-      <View
-        className={`w-5 h-5 rounded-full border-2 mr-3 items-center justify-center ${
-          event.taken
-            ? "bg-positive border-positive"
-            : "border-text-tertiary/30"
-        }`}
-      >
-        {event.taken && (
-          <Text className="text-white text-[10px] font-bold">✓</Text>
-        )}
+      <View style={[styles.checkbox, event.taken ? styles.checkboxTaken : styles.checkboxEmpty]}>
+        {event.taken && <Text style={styles.checkMark}>✓</Text>}
       </View>
 
-      <View className="flex-1">
-        <View className="flex-row items-baseline gap-2">
-          <Text
-            className={`text-base ${
-              event.taken
-                ? "text-text-tertiary line-through"
-                : "text-text-primary"
-            }`}
-          >
+      <View style={styles.body}>
+        <View style={styles.bodyRow}>
+          <Text style={event.taken ? styles.nameTaken : styles.nameDefault}>
             {event.name}
           </Text>
           {event.dose != null && (
-            <Text className="text-text-tertiary text-sm">
+            <Text style={styles.dose}>
               {event.dose} {event.unit}
             </Text>
           )}
         </View>
 
         {event.regimen && (
-          <Text className="text-text-tertiary/50 text-xs mt-0.5">
+          <Text style={styles.regimen}>
             {event.regimen}
             {event.weekLabel ? ` · ${event.weekLabel}` : ""}
           </Text>
@@ -53,3 +40,57 @@ export function DoseRow({ event, onPress }: Props) {
     </TouchableOpacity>
   );
 }
+
+const styles = StyleSheet.create((theme) => ({
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 999,
+    borderWidth: 2,
+    marginRight: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  checkboxTaken: {
+    backgroundColor: theme.colors.positive,
+    borderColor: theme.colors.positive,
+  },
+  checkboxEmpty: {
+    borderColor: "rgba(142,142,147,0.3)",
+  },
+  checkMark: {
+    color: "#ffffff",
+    fontSize: 10,
+    fontWeight: theme.fontWeight.bold,
+  },
+  body: { flex: 1 },
+  bodyRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: 8,
+  },
+  nameDefault: {
+    fontSize: theme.fontSize.base,
+    color: theme.colors.textPrimary,
+  },
+  nameTaken: {
+    fontSize: theme.fontSize.base,
+    color: theme.colors.textTertiary,
+    textDecorationLine: "line-through",
+  },
+  dose: {
+    color: theme.colors.textTertiary,
+    fontSize: theme.fontSize.sm,
+  },
+  regimen: {
+    color: "rgba(142,142,147,0.5)",
+    fontSize: theme.fontSize.xs,
+    marginTop: 2,
+  },
+}));

@@ -1,4 +1,5 @@
 import { Text, View } from "react-native";
+import { StyleSheet } from "react-native-unistyles";
 import type { Phase } from "../../modules/expo-cycle-store/src/userProfile";
 import { PHASE_COLOR } from "../../utils/phase";
 
@@ -12,12 +13,37 @@ type Props = {
 export function PhaseBadge({ phase, detail }: Props) {
   const color = PHASE_COLOR[phase];
   return (
-    <View className="flex-row items-center self-start rounded-full px-3 py-1" style={{ backgroundColor: `${color}26` }}>
-      <View className="w-1.5 h-1.5 rounded-full mr-2" style={{ backgroundColor: color }} />
-      <Text className="text-xs font-bold tracking-widest" style={{ color }}>
+    <View style={[styles.container, { backgroundColor: `${color}26` }]}>
+      <View style={[styles.dot, { backgroundColor: color }]} />
+      <Text style={[styles.text, { color }]}>
         {phase.toUpperCase()}
-        {detail ? <Text className="font-medium">{`  ${detail}`}</Text> : null}
+        {detail ? <Text style={styles.detail}>{`  ${detail}`}</Text> : null}
       </Text>
     </View>
   );
 }
+
+const styles = StyleSheet.create((theme) => ({
+  container: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    borderRadius: theme.radius.pill,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 999,
+    marginRight: 8,
+  },
+  text: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.bold,
+    letterSpacing: 1.5,
+  },
+  detail: {
+    fontWeight: theme.fontWeight.medium,
+  },
+}));

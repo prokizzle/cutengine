@@ -1,4 +1,5 @@
 import { Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet } from "react-native-unistyles";
 import type { PurchasesPackage } from "react-native-purchases";
 import { tierDisplayName } from "../../lib/revenueCat";
 
@@ -10,8 +11,8 @@ type Props = {
 
 function BadgePill({ label }: { label: string }) {
   return (
-    <View className="mt-3 bg-positive/20 rounded-lg px-3 py-1.5 self-start">
-      <Text className="text-positive text-xs font-semibold">{label}</Text>
+    <View style={styles.badge}>
+      <Text style={styles.badgeText}>{label}</Text>
     </View>
   );
 }
@@ -24,24 +25,18 @@ export function PackageCard({ pkg, disabled, onPress }: Props) {
 
   return (
     <TouchableOpacity
-      className={`bg-surface-secondary rounded-2xl px-5 py-4 border-2 ${
-        isHighlighted ? "border-positive" : "border-transparent"
-      }`}
+      style={[styles.card, isHighlighted ? styles.cardHighlighted : styles.cardDefault]}
       onPress={() => onPress(pkg)}
       disabled={disabled}
     >
-      <View className="flex-row items-center justify-between">
+      <View style={styles.row}>
         <View>
-          <Text className="text-text-primary text-lg font-semibold">
-            {title}
-          </Text>
-          <Text className="text-text-tertiary text-sm mt-0.5">{subtitle}</Text>
+          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.subtitle}>{subtitle}</Text>
         </View>
-        <View className="items-end">
-          <Text className="text-text-primary text-xl font-bold">
-            {pkg.product.priceString}
-          </Text>
-          <Text className="text-text-tertiary text-xs">
+        <View style={styles.priceCol}>
+          <Text style={styles.price}>{pkg.product.priceString}</Text>
+          <Text style={styles.period}>
             {isAnnual ? "/year" : isLifetime ? " once" : "/month"}
           </Text>
         </View>
@@ -51,3 +46,59 @@ export function PackageCard({ pkg, disabled, onPress }: Props) {
     </TouchableOpacity>
   );
 }
+
+const styles = StyleSheet.create((theme) => ({
+  card: {
+    backgroundColor: theme.colors.surfaceSecondary,
+    borderRadius: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderWidth: 2,
+  },
+  cardHighlighted: {
+    borderColor: theme.colors.positive,
+  },
+  cardDefault: {
+    borderColor: "transparent",
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  title: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.semibold,
+  },
+  subtitle: {
+    color: theme.colors.textTertiary,
+    fontSize: theme.fontSize.sm,
+    marginTop: 2,
+  },
+  priceCol: {
+    alignItems: "flex-end",
+  },
+  price: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.bold,
+  },
+  period: {
+    color: theme.colors.textTertiary,
+    fontSize: theme.fontSize.xs,
+  },
+  badge: {
+    marginTop: 12,
+    backgroundColor: "rgba(52,199,89,0.2)",
+    borderRadius: theme.radius.lg,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    alignSelf: "flex-start",
+  },
+  badgeText: {
+    color: theme.colors.positive,
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.semibold,
+  },
+}));

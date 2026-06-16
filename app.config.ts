@@ -45,7 +45,13 @@ const config: ExpoConfig = {
   },
   plugins: [
     "expo-router",
-    "@sentry/react-native/expo",
+    [
+      "@sentry/react-native/expo",
+      {
+        organization: "feeling-mindful",
+        project: "cutengine",
+      },
+    ],
     "./plugins/withSeedJson",
   ],
   experiments: {

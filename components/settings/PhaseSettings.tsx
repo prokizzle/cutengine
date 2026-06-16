@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Alert, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { StyleSheet } from "react-native-unistyles";
 import {
   DEFAULT_MACROS,
   macroRatioFor,
@@ -12,12 +13,11 @@ import { PHASE_LABEL, phaseDurationLabel } from "../../utils/phase";
 
 const PHASES: Phase[] = ["cut", "bulk", "maintenance"];
 
-// Mirrors PHASE_COLOR using the design-token classes (cut red, bulk green,
-// maintenance blue) so styling stays in NativeWind classNames.
-const PHASE_TEXT_CLASS: Record<Phase, string> = {
-  cut: "text-warning",
-  bulk: "text-positive",
-  maintenance: "text-info",
+// Maps each phase to its theme color key for the active label.
+const PHASE_COLOR_KEY: Record<Phase, "warning" | "positive" | "info"> = {
+  cut: "warning",
+  bulk: "positive",
+  maintenance: "info",
 };
 
 type Props = {
@@ -32,8 +32,8 @@ type Props = {
 
 function ProBadge() {
   return (
-    <View className="bg-attention/20 rounded-md px-1.5 py-0.5 ml-2">
-      <Text className="text-attention text-[10px] font-bold tracking-widest">PRO</Text>
+    <View style={styles.proBadge}>
+      <Text style={styles.proBadgeText}>PRO</Text>
     </View>
   );
 }
@@ -61,12 +61,12 @@ function TierRow({
   const lbs = Math.abs(tier.weeklyDeltaLbs);
   return (
     <TouchableOpacity
-      className="flex-row items-center justify-between px-4 py-3.5"
+      style={styles.tierRow}
       onPress={onPress}
       accessibilityLabel={`${tier.label}, ${lbs} pounds per week`}
     >
-      <Text className="text-text-primary text-base">{tier.label}</Text>
-      <Text className={selected ? "text-positive text-sm font-semibold" : "text-text-tertiary text-sm"}>
+      <Text style={styles.tierLabel}>{tier.label}</Text>
+      <Text style={selected ? styles.tierValueSelected : styles.tierValue}>
         {lbs} lb/wk {selected ? "✓" : ""}
       </Text>
     </TouchableOpacity>
@@ -108,10 +108,10 @@ function MacroSplitEditor({
   };
 
   const field = (label: string, value: string, onChange: (v: string) => void) => (
-    <View className="flex-1 items-center">
-      <Text className="text-text-tertiary text-[10px] mb-1">{label}</Text>
+    <View style={styles.fieldCol}>
+      <Text style={styles.fieldLabel}>{label}</Text>
       <TextInput
-        className="bg-surface-tertiary rounded-xl px-3 py-2 text-text-primary text-base w-full text-center"
+        style={styles.fieldInput}
         keyboardType="number-pad"
         value={value}
         onChangeText={onChange}
@@ -121,29 +121,29 @@ function MacroSplitEditor({
   );
 
   return (
-    <View className="px-4 py-3.5">
-      <Text className="text-text-primary text-base mb-3">
+    <View style={styles.macroEditor}>
+      <Text style={styles.macroHeading}>
         {PHASE_LABEL[phase]} macro split (%){hasOverride ? " — custom" : ""}
       </Text>
-      <View className="flex-row gap-3 mb-3">
+      <View style={styles.fieldRow}>
         {field("PROTEIN", protein, setProtein)}
         {field("CARBS", carb, setCarb)}
         {field("FAT", fat, setFat)}
       </View>
-      <View className="flex-row gap-3">
+      <View style={styles.actionRow}>
         <TouchableOpacity
-          className="flex-1 items-center py-2.5 rounded-xl bg-positive/15"
+          style={[styles.actionButton, styles.actionButtonSave]}
           onPress={save}
           accessibilityLabel="Save macro split"
         >
-          <Text className="text-positive font-semibold">Save split</Text>
+          <Text style={styles.actionSaveText}>Save split</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          className="flex-1 items-center py-2.5 rounded-xl bg-surface-tertiary"
+          style={[styles.actionButton, styles.actionButtonReset]}
           onPress={reset}
           accessibilityLabel="Reset macro split to default"
         >
-          <Text className="text-text-secondary">Reset to default</Text>
+          <Text style={styles.actionResetText}>Reset to default</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -151,11 +151,10 @@ function MacroSplitEditor({
 }
 
 function Divider() {
-  return <View className="h-px bg-white/5 mx-4" />;
+  return <View style={styles.divider} />;
 }
 
-/** Phase mode controls for Settings: selector with Pro gate, duration,
- *  weekly target tiers, and a per-phase macro split editor. */
+/** Phase mode controls for Settings. */
 export function PhaseSettings({
   profile,
   entitled,
@@ -170,16 +169,14 @@ export function PhaseSettings({
   return (
     <View>
       {/* Phase selector */}
-      <View className="flex-row mx-4 my-3 bg-surface-tertiary rounded-xl p-1">
+      <View style={styles.selector}>
         {PHASES.map((option) => {
           const selected = option === phase;
           const locked = option !== "cut" && !entitled;
           return (
             <TouchableOpacity
               key={option}
-              className={`flex-1 flex-row items-center justify-center py-2 rounded-lg ${
-                selected ? "bg-surface-secondary" : ""
-              }`}
+              style={[styles.selectorButton, selected && styles.selectorButtonSelected]}
               accessibilityLabel={`${PHASE_LABEL[option]} phase${locked ? ", requires Pro" : ""}`}
               onPress={() => {
                 if (selected) return;
@@ -190,13 +187,7 @@ export function PhaseSettings({
                 confirmSwitch(phase, option, () => onSwitchPhase(option));
               }}
             >
-              <Text
-                className={
-                  selected
-                    ? `${PHASE_TEXT_CLASS[option]} text-sm font-semibold`
-                    : "text-text-tertiary text-sm"
-                }
-              >
+              <Text style={selected ? [styles.selectorText, styles[PHASE_COLOR_KEY[option]]] : styles.selectorTextInactive}>
                 {PHASE_LABEL[option]}
               </Text>
               {locked && <ProBadge />}
@@ -205,11 +196,9 @@ export function PhaseSettings({
         })}
       </View>
 
-      {/* Current phase duration */}
-      <Text className="text-text-tertiary text-sm px-4 pb-3">{phaseDurationLabel(profile)}</Text>
+      <Text style={styles.durationLabel}>{phaseDurationLabel(profile)}</Text>
       <Divider />
 
-      {/* Weekly target tiers (cut/bulk only) */}
       {tiers.map((tier) => (
         <View key={tier.id}>
           <TierRow
@@ -221,15 +210,14 @@ export function PhaseSettings({
         </View>
       ))}
       {phase === "maintenance" && (
-        <View className="px-4 py-3.5">
-          <Text className="text-text-tertiary text-sm">
+        <View style={styles.maintenanceBlock}>
+          <Text style={styles.maintenanceText}>
             Maintenance targets your TDEE — no surplus or deficit.
           </Text>
         </View>
       )}
       {phase === "maintenance" && <Divider />}
 
-      {/* Macro split editor for the active phase */}
       <MacroSplitEditor
         key={phase}
         phase={phase}
@@ -239,3 +227,144 @@ export function PhaseSettings({
     </View>
   );
 }
+
+const styles = StyleSheet.create((theme) => ({
+  proBadge: {
+    backgroundColor: "rgba(255,159,10,0.2)",
+    borderRadius: theme.radius.md,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginLeft: 8,
+  },
+  proBadgeText: {
+    color: theme.colors.attention,
+    fontSize: 10,
+    fontWeight: theme.fontWeight.bold,
+    letterSpacing: 1.5,
+  },
+  tierRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  tierLabel: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.fontSize.base,
+  },
+  tierValue: {
+    color: theme.colors.textTertiary,
+    fontSize: theme.fontSize.sm,
+  },
+  tierValueSelected: {
+    color: theme.colors.positive,
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.semibold,
+  },
+  fieldCol: {
+    flex: 1,
+    alignItems: "center",
+  },
+  fieldLabel: {
+    color: theme.colors.textTertiary,
+    fontSize: 10,
+    marginBottom: 4,
+  },
+  fieldInput: {
+    backgroundColor: theme.colors.surfaceTertiary,
+    borderRadius: theme.radius.xl,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    color: theme.colors.textPrimary,
+    fontSize: theme.fontSize.base,
+    width: "100%",
+    textAlign: "center",
+  },
+  macroEditor: {
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  macroHeading: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.fontSize.base,
+    marginBottom: 12,
+  },
+  fieldRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 12,
+  },
+  actionRow: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  actionButton: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: 10,
+    borderRadius: theme.radius.xl,
+  },
+  actionButtonSave: {
+    backgroundColor: "rgba(52,199,89,0.15)",
+  },
+  actionButtonReset: {
+    backgroundColor: theme.colors.surfaceTertiary,
+  },
+  actionSaveText: {
+    color: theme.colors.positive,
+    fontWeight: theme.fontWeight.semibold,
+  },
+  actionResetText: {
+    color: theme.colors.textSecondary,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    marginHorizontal: 16,
+  },
+  selector: {
+    flexDirection: "row",
+    marginHorizontal: 16,
+    marginVertical: 12,
+    backgroundColor: theme.colors.surfaceTertiary,
+    borderRadius: theme.radius.xl,
+    padding: 4,
+  },
+  selectorButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 8,
+    borderRadius: theme.radius.lg,
+  },
+  selectorButtonSelected: {
+    backgroundColor: theme.colors.surfaceSecondary,
+  },
+  selectorText: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.semibold,
+  },
+  selectorTextInactive: {
+    color: theme.colors.textTertiary,
+    fontSize: theme.fontSize.sm,
+  },
+  warning: { color: theme.colors.warning },
+  positive: { color: theme.colors.positive },
+  info: { color: theme.colors.info },
+  durationLabel: {
+    color: theme.colors.textTertiary,
+    fontSize: theme.fontSize.sm,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+  },
+  maintenanceBlock: {
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  maintenanceText: {
+    color: theme.colors.textTertiary,
+    fontSize: theme.fontSize.sm,
+  },
+}));
