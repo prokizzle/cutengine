@@ -5,7 +5,7 @@ module.exports = function (api) {
     plugins: [
       [
         "react-native-unistyles/plugin",
-        { root: "app", autoProcessImports: ["@/components"] },
+        { root: "app", autoProcessPaths: ["components"] },
       ],
       "react-native-worklets/plugin",
     ],
