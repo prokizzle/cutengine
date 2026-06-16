@@ -45,8 +45,10 @@ function describeCadence(rule: ParsedRule): string {
   if (rule.amountMg != null) parts.push(`${rule.amountMg} mg`);
   parts.push(rule.cadenceText);
   if (rule.daysOfWeek?.length) {
+    // Native module emits 1-based weekdays (Sun=1 … Sat=7); convert to a
+    // 0-based index for label lookup.
     const day = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    parts.push(rule.daysOfWeek.map((d) => day[d] ?? `?${d}`).join("/"));
+    parts.push(rule.daysOfWeek.map((d) => day[d - 1] ?? `?${d}`).join("/"));
   }
   if (rule.startWeek != null) {
     parts.push(
@@ -82,6 +84,9 @@ export default function ProtocolScreen() {
       }
     } catch (err) {
       Sentry.captureException(err);
+      // Clear any prior successful result so the user never sees rules from
+      // an earlier parse alongside a "Parse failed" alert for the new one.
+      setResult(null);
       const message = err instanceof Error ? err.message : "Parse failed.";
       Alert.alert("Parse failed", message);
     } finally {
