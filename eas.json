@@ -40,7 +40,9 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "nick@feelingmindful.com"
+        "appleId": "nick@feelingmindful.com",
+        "ascAppId": "6757690403",
+        "appleTeamId": "W4MZM2YEAU"
       }
     }
   }

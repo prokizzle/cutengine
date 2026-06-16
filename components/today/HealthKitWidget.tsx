@@ -1,4 +1,5 @@
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import { StyleSheet } from "react-native-unistyles";
 import { kgToLbs } from "../../utils/weight";
 
 type Props = {
@@ -16,19 +17,16 @@ export function HealthKitWidget({
   onWeightInputChange,
   onLogWeight,
 }: Props) {
+  const buttonDisabled = !ready || !weightInput.trim();
   return (
-    <View className="mx-5 mb-4 bg-surface-secondary rounded-2xl px-4 py-3">
-      <View className="flex-row items-center justify-between mb-2">
-        <Text className="text-text-secondary text-sm font-medium">
-          HealthKit
-        </Text>
-        <View
-          className={`w-2 h-2 rounded-full ${ready ? "bg-positive" : "bg-warning"}`}
-        />
+    <View style={styles.card}>
+      <View style={styles.headerRow}>
+        <Text style={styles.label}>HealthKit</Text>
+        <View style={[styles.statusDot, ready ? styles.statusDotReady : styles.statusDotWarn]} />
       </View>
-      <View className="flex-row items-center gap-2">
+      <View style={styles.inputRow}>
         <TextInput
-          className="flex-1 bg-surface-tertiary rounded-lg px-3 py-2 text-text-primary text-base"
+          style={styles.input}
           placeholder="Weight (kg)"
           placeholderTextColor="#8e8e93"
           keyboardType="decimal-pad"
@@ -36,20 +34,81 @@ export function HealthKitWidget({
           onChangeText={onWeightInputChange}
         />
         <TouchableOpacity
-          className="bg-positive rounded-lg px-4 py-2"
-          style={{ opacity: !ready || !weightInput.trim() ? 0.4 : 1 }}
+          style={[styles.logButton, { opacity: buttonDisabled ? 0.4 : 1 }]}
           onPress={onLogWeight}
-          disabled={!ready || !weightInput.trim()}
+          disabled={buttonDisabled}
         >
-          <Text className="text-white font-semibold text-sm">Log</Text>
+          <Text style={styles.logButtonText}>Log</Text>
         </TouchableOpacity>
       </View>
       {weightKg != null && (
-        <Text className="text-text-tertiary text-xs mt-2">
-          Last HK weight: {weightKg.toFixed(1)} kg (
-          {kgToLbs(weightKg).toFixed(1)} lb)
+        <Text style={styles.hkLine}>
+          Last HK weight: {weightKg.toFixed(1)} kg ({kgToLbs(weightKg).toFixed(1)} lb)
         </Text>
       )}
     </View>
   );
 }
+
+const styles = StyleSheet.create((theme) => ({
+  card: {
+    marginHorizontal: 20,
+    marginBottom: 16,
+    backgroundColor: theme.colors.surfaceSecondary,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  label: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.medium,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 999,
+  },
+  statusDotReady: {
+    backgroundColor: theme.colors.positive,
+  },
+  statusDotWarn: {
+    backgroundColor: theme.colors.warning,
+  },
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  input: {
+    flex: 1,
+    backgroundColor: theme.colors.surfaceTertiary,
+    borderRadius: theme.radius.lg,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    color: theme.colors.textPrimary,
+    fontSize: theme.fontSize.base,
+  },
+  logButton: {
+    backgroundColor: theme.colors.positive,
+    borderRadius: theme.radius.lg,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  logButtonText: {
+    color: "#ffffff",
+    fontWeight: theme.fontWeight.semibold,
+    fontSize: theme.fontSize.sm,
+  },
+  hkLine: {
+    color: theme.colors.textTertiary,
+    fontSize: theme.fontSize.xs,
+    marginTop: 8,
+  },
+}));

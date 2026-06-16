@@ -1,6 +1,15 @@
 import React from "react";
+import { StyleSheet } from "react-native";
 import { render, screen } from "@testing-library/react-native";
 import { TimelineHero } from "./TimelineHero";
+
+const POSITIVE = "#34c759";
+const WARNING = "#ff3b30";
+
+function colorOf(node: { props: { style?: unknown } }): string | undefined {
+  const flat = StyleSheet.flatten(node.props.style) as { color?: string } | undefined;
+  return flat?.color;
+}
 
 const base = {
   date: new Date("2026-06-11"),
@@ -41,26 +50,26 @@ describe("TimelineHero", () => {
 
   it("colors a deficit green during a cut", () => {
     render(<TimelineHero {...base} phase="cut" calorieDelta={-85} />);
-    expect(screen.getByText("-85").props.className).toContain("text-positive");
+    expect(colorOf(screen.getByText("-85"))).toBe(POSITIVE);
   });
 
   it("colors a deficit red during a bulk (missing the surplus)", () => {
     render(<TimelineHero {...base} phase="bulk" calorieDelta={-85} />);
-    expect(screen.getByText("-85").props.className).toContain("text-warning");
+    expect(colorOf(screen.getByText("-85"))).toBe(WARNING);
   });
 
   it("colors a surplus green during a bulk", () => {
     render(<TimelineHero {...base} phase="bulk" calorieDelta={120} />);
-    expect(screen.getByText("+120").props.className).toContain("text-positive");
+    expect(colorOf(screen.getByText("+120"))).toBe(POSITIVE);
   });
 
   it("treats small deltas as on-plan during maintenance", () => {
     render(<TimelineHero {...base} phase="maintenance" calorieDelta={50} />);
-    expect(screen.getByText("+50").props.className).toContain("text-positive");
+    expect(colorOf(screen.getByText("+50"))).toBe(POSITIVE);
   });
 
   it("colors weight gain green during a bulk", () => {
     render(<TimelineHero {...base} phase="bulk" weightDelta={1.2} />);
-    expect(screen.getByText("+1.2").props.className).toContain("text-positive");
+    expect(colorOf(screen.getByText("+1.2"))).toBe(POSITIVE);
   });
 });

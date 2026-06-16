@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet } from "react-native-unistyles";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useProEntitlement } from "../hooks/useProEntitlement";
@@ -11,8 +12,7 @@ import {
 import { CUT_TIERS, SURPLUS_TIERS, type WeeklyDeltaTier } from "../utils/calorieTargets";
 import { PHASE_COLOR, PHASE_LABEL } from "../utils/phase";
 
-// CUTIOS-23 — phase-first onboarding. Welcome copy is phase-agnostic; cut-only
-// setup is skipped for bulk users, maintenance needs no target step at all.
+// CUTIOS-23 — phase-first onboarding.
 
 type Step = "welcome" | "phase" | "target";
 
@@ -25,12 +25,12 @@ const PHASE_OPTIONS: { phase: Phase; headline: string; detail: string }[] = [
 function PrimaryButton({ label, onPress, disabled }: { label: string; onPress: () => void; disabled?: boolean }) {
   return (
     <TouchableOpacity
-      className={`items-center py-4 rounded-2xl ${disabled ? "bg-surface-tertiary" : "bg-positive"}`}
+      style={[styles.primaryButton, disabled ? styles.primaryButtonDisabled : styles.primaryButtonEnabled]}
       onPress={onPress}
       disabled={disabled}
       accessibilityLabel={label}
     >
-      <Text className={disabled ? "text-text-tertiary font-bold" : "text-surface-primary font-bold"}>
+      <Text style={disabled ? styles.primaryButtonTextDisabled : styles.primaryButtonTextEnabled}>
         {label}
       </Text>
     </TouchableOpacity>
@@ -44,8 +44,6 @@ export default function OnboardingScreen() {
   const [phase, setPhase] = useState<Phase | null>(null);
   const [weeklyDeltaKg, setWeeklyDeltaKg] = useState<number | null>(null);
 
-  // Re-check entitlement when this screen regains focus — e.g. after the
-  // user purchases Pro on the paywall pushed from selectPhase below.
   useFocusEffect(
     useCallback(() => {
       refreshEntitlement().catch(console.error);
@@ -69,10 +67,7 @@ export default function OnboardingScreen() {
   };
 
   const selectPhase = (selected: Phase) => {
-    // Don't judge entitlement before the first check resolves — a subscribed
-    // user tapping early would be bounced to the paywall incorrectly.
     if (selected !== "cut" && entitlementLoading) return;
-    // Bulk and maintenance are Pro-only (CUTIOS-24) — upsell before continuing.
     if (selected !== "cut" && !entitled) {
       router.push("/paywall");
       return;
@@ -88,12 +83,10 @@ export default function OnboardingScreen() {
 
   if (step === "welcome") {
     return (
-      <SafeAreaView className="flex-1 bg-surface-primary">
-        <View className="flex-1 justify-end px-6 pb-10">
-          <Text className="text-text-primary text-4xl font-bold tracking-tight mb-3">
-            Data-Driven Body Composition
-          </Text>
-          <Text className="text-text-tertiary text-base leading-6 mb-10">
+      <SafeAreaView style={styles.screen}>
+        <View style={styles.welcomeContainer}>
+          <Text style={styles.welcomeTitle}>Data-Driven Body Composition</Text>
+          <Text style={styles.welcomeBody}>
             Cut, bulk, or maintain — CutEngine turns your weight trend, protocol, and
             calorie targets into one daily plan.
           </Text>
@@ -105,30 +98,30 @@ export default function OnboardingScreen() {
 
   if (step === "phase") {
     return (
-      <SafeAreaView className="flex-1 bg-surface-primary">
-        <ScrollView className="flex-1 px-6" contentContainerStyle={{ paddingTop: 24, paddingBottom: 40 }}>
-          <Text className="text-text-primary text-3xl font-bold mb-2">What phase are you in?</Text>
-          <Text className="text-text-tertiary text-base mb-8">You can switch anytime in Settings.</Text>
+      <SafeAreaView style={styles.screen}>
+        <ScrollView style={styles.flex1Px6} contentContainerStyle={{ paddingTop: 24, paddingBottom: 40 }}>
+          <Text style={styles.stepTitle}>What phase are you in?</Text>
+          <Text style={styles.stepSubtitle}>You can switch anytime in Settings.</Text>
           {PHASE_OPTIONS.map(({ phase: option, headline, detail }) => {
             const locked = option !== "cut" && !entitled;
             return (
               <TouchableOpacity
                 key={option}
-                className="bg-surface-secondary rounded-2xl p-5 mb-3"
+                style={styles.phaseCard}
                 onPress={() => selectPhase(option)}
                 accessibilityLabel={`${headline}${locked ? ", requires Pro" : ""}`}
               >
-                <View className="flex-row items-center mb-1">
-                  <Text className="text-xl font-bold" style={{ color: PHASE_COLOR[option] }}>
+                <View style={styles.phaseCardHeader}>
+                  <Text style={[styles.phaseHeadline, { color: PHASE_COLOR[option] }]}>
                     {headline}
                   </Text>
                   {locked && (
-                    <View className="bg-attention/20 rounded-md px-1.5 py-0.5 ml-2">
-                      <Text className="text-attention text-[10px] font-bold tracking-widest">PRO</Text>
+                    <View style={styles.proPill}>
+                      <Text style={styles.proPillText}>PRO</Text>
                     </View>
                   )}
                 </View>
-                <Text className="text-text-tertiary text-sm">{detail}</Text>
+                <Text style={styles.phaseDetail}>{detail}</Text>
               </TouchableOpacity>
             );
           })}
@@ -137,15 +130,14 @@ export default function OnboardingScreen() {
     );
   }
 
-  // step === "target" — weekly pace for cut/bulk
   const tiers: WeeklyDeltaTier[] = phase === "bulk" ? SURPLUS_TIERS : CUT_TIERS;
   return (
-    <SafeAreaView className="flex-1 bg-surface-primary">
-      <ScrollView className="flex-1 px-6" contentContainerStyle={{ paddingTop: 24, paddingBottom: 40 }}>
-        <Text className="text-text-primary text-3xl font-bold mb-2">
+    <SafeAreaView style={styles.screen}>
+      <ScrollView style={styles.flex1Px6} contentContainerStyle={{ paddingTop: 24, paddingBottom: 40 }}>
+        <Text style={styles.stepTitle}>
           {phase === "bulk" ? "How fast do you want to gain?" : "How fast do you want to lose?"}
         </Text>
-        <Text className="text-text-tertiary text-base mb-8">
+        <Text style={styles.stepSubtitle}>
           This sets your daily {phase === "bulk" ? "surplus" : "deficit"}. {PHASE_LABEL[phase ?? "cut"]} pace
           is adjustable later.
         </Text>
@@ -154,20 +146,20 @@ export default function OnboardingScreen() {
           return (
             <TouchableOpacity
               key={tier.id}
-              className={`rounded-2xl p-5 mb-3 ${selected ? "bg-positive/15 border border-positive" : "bg-surface-secondary"}`}
+              style={[styles.tierCard, selected ? styles.tierCardSelected : styles.tierCardDefault]}
               onPress={() => setWeeklyDeltaKg(tier.weeklyDeltaKg)}
               accessibilityLabel={tier.label}
             >
-              <Text className={`text-lg font-semibold ${selected ? "text-positive" : "text-text-primary"}`}>
+              <Text style={[styles.tierLabel, selected ? styles.tierLabelSelected : styles.tierLabelDefault]}>
                 {tier.label}
               </Text>
-              <Text className="text-text-tertiary text-sm">
+              <Text style={styles.tierDetail}>
                 {Math.abs(tier.weeklyDeltaLbs)} lb per week
               </Text>
             </TouchableOpacity>
           );
         })}
-        <View className="mt-4">
+        <View style={styles.mt4}>
           <PrimaryButton
             label="Start tracking"
             disabled={weeklyDeltaKg == null}
@@ -182,3 +174,120 @@ export default function OnboardingScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create((theme) => ({
+  screen: {
+    flex: 1,
+    backgroundColor: theme.colors.surfacePrimary,
+  },
+  flex1Px6: { flex: 1, paddingHorizontal: 24 },
+  welcomeContainer: {
+    flex: 1,
+    justifyContent: "flex-end",
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+  },
+  welcomeTitle: {
+    color: theme.colors.textPrimary,
+    fontSize: 36,
+    fontWeight: theme.fontWeight.bold,
+    letterSpacing: -0.5,
+    marginBottom: 12,
+  },
+  welcomeBody: {
+    color: theme.colors.textTertiary,
+    fontSize: theme.fontSize.base,
+    lineHeight: 24,
+    marginBottom: 40,
+  },
+  primaryButton: {
+    alignItems: "center",
+    paddingVertical: 16,
+    borderRadius: 16,
+  },
+  primaryButtonEnabled: {
+    backgroundColor: theme.colors.positive,
+  },
+  primaryButtonDisabled: {
+    backgroundColor: theme.colors.surfaceTertiary,
+  },
+  primaryButtonTextEnabled: {
+    color: theme.colors.surfacePrimary,
+    fontWeight: theme.fontWeight.bold,
+  },
+  primaryButtonTextDisabled: {
+    color: theme.colors.textTertiary,
+    fontWeight: theme.fontWeight.bold,
+  },
+  stepTitle: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.fontSize["3xl"],
+    fontWeight: theme.fontWeight.bold,
+    marginBottom: 8,
+  },
+  stepSubtitle: {
+    color: theme.colors.textTertiary,
+    fontSize: theme.fontSize.base,
+    marginBottom: 32,
+  },
+  phaseCard: {
+    backgroundColor: theme.colors.surfaceSecondary,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 12,
+  },
+  phaseCardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  phaseHeadline: {
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.bold,
+  },
+  proPill: {
+    backgroundColor: "rgba(255,159,10,0.2)",
+    borderRadius: theme.radius.md,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginLeft: 8,
+  },
+  proPillText: {
+    color: theme.colors.attention,
+    fontSize: 10,
+    fontWeight: theme.fontWeight.bold,
+    letterSpacing: 1.5,
+  },
+  phaseDetail: {
+    color: theme.colors.textTertiary,
+    fontSize: theme.fontSize.sm,
+  },
+  tierCard: {
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 12,
+  },
+  tierCardDefault: {
+    backgroundColor: theme.colors.surfaceSecondary,
+  },
+  tierCardSelected: {
+    backgroundColor: "rgba(52,199,89,0.15)",
+    borderWidth: 1,
+    borderColor: theme.colors.positive,
+  },
+  tierLabel: {
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.semibold,
+  },
+  tierLabelDefault: {
+    color: theme.colors.textPrimary,
+  },
+  tierLabelSelected: {
+    color: theme.colors.positive,
+  },
+  tierDetail: {
+    color: theme.colors.textTertiary,
+    fontSize: theme.fontSize.sm,
+  },
+  mt4: { marginTop: 16 },
+}));

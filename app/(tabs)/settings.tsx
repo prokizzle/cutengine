@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/react-native";
 import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet } from "react-native-unistyles";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { PhaseSettings } from "../../components/settings/PhaseSettings";
@@ -8,21 +9,23 @@ import { useUserProfile } from "../../hooks/useUserProfile";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <View className="mb-5 px-5">
-      <Text className="text-text-tertiary text-[10px] font-semibold tracking-widest mb-3 ml-1">{title}</Text>
-      <View className="bg-surface-secondary rounded-2xl overflow-hidden">{children}</View>
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      <View style={styles.sectionBody}>{children}</View>
     </View>
   );
 }
 function Row({ label, value, onPress, destructive }: { label: string; value?: string; onPress?: () => void; destructive?: boolean }) {
   return (
-    <TouchableOpacity className="flex-row items-center justify-between px-4 py-3.5" onPress={onPress} disabled={!onPress}>
-      <Text className={`text-base ${destructive ? "text-warning" : "text-text-primary"}`}>{label}</Text>
-      {value && <Text className="text-text-tertiary text-sm">{value}</Text>}
+    <TouchableOpacity style={styles.row} onPress={onPress} disabled={!onPress}>
+      <Text style={[styles.rowLabel, destructive && styles.rowLabelDestructive]}>{label}</Text>
+      {value && <Text style={styles.rowValue}>{value}</Text>}
     </TouchableOpacity>
   );
 }
-function Divider() { return <View className="h-px bg-white/5 mx-4" />; }
+function Divider() {
+  return <View style={styles.divider} />;
+}
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -35,9 +38,9 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-surface-primary">
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingTop: 12, paddingBottom: 40 }}>
-        <Text className="text-text-primary text-2xl font-bold px-5 mb-5">Settings</Text>
+    <SafeAreaView style={styles.screen}>
+      <ScrollView style={styles.flex1} contentContainerStyle={{ paddingTop: 12, paddingBottom: 40 }}>
+        <Text style={styles.header}>Settings</Text>
         {profile && (
           <Section title="PHASE">
             <PhaseSettings
@@ -76,3 +79,58 @@ export default function SettingsScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create((theme) => ({
+  screen: {
+    flex: 1,
+    backgroundColor: theme.colors.surfacePrimary,
+  },
+  flex1: { flex: 1 },
+  header: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.fontSize.xl,
+    fontWeight: theme.fontWeight.bold,
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  section: {
+    marginBottom: 20,
+    paddingHorizontal: 20,
+  },
+  sectionTitle: {
+    color: theme.colors.textTertiary,
+    fontSize: 10,
+    fontWeight: theme.fontWeight.semibold,
+    letterSpacing: 1.5,
+    marginBottom: 12,
+    marginLeft: 4,
+  },
+  sectionBody: {
+    backgroundColor: theme.colors.surfaceSecondary,
+    borderRadius: 16,
+    overflow: "hidden",
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  rowLabel: {
+    fontSize: theme.fontSize.base,
+    color: theme.colors.textPrimary,
+  },
+  rowLabelDestructive: {
+    color: theme.colors.warning,
+  },
+  rowValue: {
+    color: theme.colors.textTertiary,
+    fontSize: theme.fontSize.sm,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    marginHorizontal: 16,
+  },
+}));

@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/react-native";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ScrollView, View } from "react-native";
+import { StyleSheet } from "react-native-unistyles";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TimelineHero } from "../../components/timeline/TimelineHero";
 import { MacroTargets } from "../../components/timeline/MacroTargets";
@@ -46,11 +47,7 @@ export default function TodayScreen() {
   const { profile } = useUserProfile();
   const [checkedInToday, setCheckedInToday] = useState(false);
   const [biofeedbackEntries, setBiofeedbackEntries] = useState<BiofeedbackEntry[]>([]);
-  // Keyed by suggestion kind so dismissing one insight doesn't hide
-  // different suggestions computed later in the same session.
   const [dismissedSuggestionKind, setDismissedSuggestionKind] = useState<string | null>(null);
-  // Day-keyed so a dismissal can't suppress a different day's risk insight
-  // when the screen stays mounted across midnight.
   const [dismissedRiskDay, setDismissedRiskDay] = useState<string | null>(null);
 
   useEffect(() => {
@@ -77,8 +74,6 @@ export default function TodayScreen() {
       persistBiofeedbackEntry(entry)
         .then(() => {
           setCheckedInToday(true);
-          // Keep in-memory history in sync with the store so the miss
-          // predictor doesn't read today's check-in as a miss after midnight.
           setBiofeedbackEntries((prev) => [...prev, entry]);
         })
         .catch((err) => Sentry.captureException(err));
@@ -94,22 +89,19 @@ export default function TodayScreen() {
 
   const suggestion = profile ? suggestPhaseChange(weightHistory, profile) : null;
 
-  // CUTIOS-12 — on-device miss-risk model, retrained from history on mount
-  // (the "morning check" integration point). Only nudges while today's
-  // check-in is still pending.
   const missRisk = useMemo(
     () => (profile ? predictTodayMissRisk(biofeedbackEntries, profile) : null),
     [biofeedbackEntries, profile],
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-surface-primary">
+    <SafeAreaView style={styles.screen}>
       <ScrollView
-        className="flex-1"
+        style={styles.flex1}
         contentContainerStyle={{ paddingBottom: 120 }}
       >
         {profile && (
-          <View className="px-5 pt-4">
+          <View style={styles.badgeContainer}>
             <PhaseBadge
               phase={phase}
               detail={`Week ${phaseDurationWeeks(profile.phaseStartDate) + 1}`}
@@ -158,3 +150,15 @@ export default function TodayScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create((theme) => ({
+  screen: {
+    flex: 1,
+    backgroundColor: theme.colors.surfacePrimary,
+  },
+  flex1: { flex: 1 },
+  badgeContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+  },
+}));

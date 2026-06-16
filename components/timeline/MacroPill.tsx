@@ -1,4 +1,5 @@
 import { Text, View } from "react-native";
+import { StyleSheet } from "react-native-unistyles";
 
 type Props = {
   label: string;
@@ -9,15 +10,39 @@ type Props = {
 
 export function MacroPill({ label, value, unit, color }: Props) {
   return (
-    <View
-      className="flex-1 bg-surface-secondary rounded-xl px-3 py-3 items-center border-t-2"
-      style={{ borderTopColor: color }}
-    >
-      <Text className="text-text-secondary text-xs mb-0.5">{label}</Text>
-      <Text className="text-text-primary text-xl font-bold">
+    <View style={[styles.container, { borderTopColor: color }]}>
+      <Text style={styles.label}>{label}</Text>
+      <Text style={styles.value}>
         {value}
-        <Text className="text-text-tertiary text-sm font-normal"> {unit}</Text>
+        <Text style={styles.unit}> {unit}</Text>
       </Text>
     </View>
   );
 }
+
+const styles = StyleSheet.create((theme) => ({
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.surfaceSecondary,
+    borderRadius: theme.radius.xl,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    alignItems: "center",
+    borderTopWidth: 2,
+  },
+  label: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.fontSize.xs,
+    marginBottom: 2,
+  },
+  value: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.bold,
+  },
+  unit: {
+    color: theme.colors.textTertiary,
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.regular,
+  },
+}));

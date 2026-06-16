@@ -1,4 +1,5 @@
 import { ActivityIndicator, ScrollView, View } from "react-native";
+import { StyleSheet } from "react-native-unistyles";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { usePaywall } from "../../hooks/usePaywall";
 import { PaywallHeader } from "../../components/paywall/PaywallHeader";
@@ -11,20 +12,20 @@ export default function PaywallScreen() {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-surface-primary items-center justify-center">
+      <View style={styles.loadingContainer}>
         <ActivityIndicator color="#34c759" />
       </View>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-surface-primary">
+    <SafeAreaView style={styles.screen}>
       <ScrollView
-        className="flex-1"
+        style={styles.flex1}
         contentContainerStyle={{ paddingBottom: 40 }}
       >
         <PaywallHeader />
-        <View className="px-5 gap-3">
+        <View style={styles.packageList}>
           {packages.map((pkg) => (
             <PackageCard
               key={pkg.identifier}
@@ -39,3 +40,21 @@ export default function PaywallScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create((theme) => ({
+  screen: {
+    flex: 1,
+    backgroundColor: theme.colors.surfacePrimary,
+  },
+  flex1: { flex: 1 },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: theme.colors.surfacePrimary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  packageList: {
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+}));
