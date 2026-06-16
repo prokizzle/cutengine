@@ -141,10 +141,14 @@ export default function TodayScreen() {
   const phaseCopy = phase ? PHASE_COPY[phase] : null;
 
   const tdeeEstimate = weightKg ? Math.round(weightKg * KCAL_PER_KG_BASELINE) : null;
-  const calorieTarget =
+  const rawTarget =
     profile && tdeeEstimate ? dailyTargetKcal(tdeeEstimate, profile) : null;
+  // Under an extreme weekly delta, the linear TDEE/delta math can dip to zero
+  // or below. We surface only physically meaningful targets — anything else is
+  // treated as missing.
+  const calorieTarget = rawTarget != null && rawTarget > 0 ? rawTarget : null;
   const macros =
-    profile && calorieTarget
+    profile && calorieTarget != null
       ? macroGramsFor(calorieTarget, macroRatioFor(profile, profile.currentPhase))
       : null;
 
