@@ -4,7 +4,7 @@ import { render, screen } from "@testing-library/react-native";
 import { TimelineHero } from "./TimelineHero";
 
 const POSITIVE = "#34c759";
-const WARNING = "#ff3b30";
+const WARNING = "#ff453a";
 
 function colorOf(node: { props: { style?: unknown } }): string | undefined {
   const flat = StyleSheet.flatten(node.props.style) as { color?: string } | undefined;
