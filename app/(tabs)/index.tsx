@@ -39,31 +39,63 @@ function isSameDay(a: Date, b: Date): boolean {
   return a.toDateString() === b.toDateString();
 }
 
-function weeklyWeightDeltaLbs(history: WeightSample[]): number | null {
+/**
+ * Returns the change in body weight (lbs) across the trailing 7 days, anchored
+ * to `now` — NOT to the date of the latest sample. With sparse logging the user
+ * sees the actual week, not the week ending at their last log.
+ *
+ * Returns null when there isn't enough data in the trailing window to draw a
+ * trend (zero or one sample inside the window).
+ */
+function weeklyWeightDeltaLbs(history: WeightSample[], now: Date = new Date()): number | null {
   if (history.length < 2) return null;
-  const sorted = [...history].sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-  );
-  const latest = sorted[sorted.length - 1];
-  const cutoff = new Date(latest.date).getTime() - 7 * 24 * 60 * 60 * 1000;
-  const earliest = sorted.find((s) => new Date(s.date).getTime() >= cutoff) ?? sorted[0];
-  if (earliest === latest) return null;
+  const windowEnd = now.getTime();
+  const windowStart = windowEnd - 7 * 24 * 60 * 60 * 1000;
+  const inWindow = history
+    .filter((s) => {
+      const t = new Date(s.date).getTime();
+      return t >= windowStart && t <= windowEnd;
+    })
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  if (inWindow.length < 2) return null;
+  const earliest = inWindow[0];
+  const latest = inWindow[inWindow.length - 1];
   return kgToLbs(latest.kg - earliest.kg);
 }
 
-type Status = "on-track" | "watch" | "action";
+type Status = "on-track" | "watch" | "action" | "unknown";
 
 function statusFromRisk(level: "low" | "moderate" | "high" | undefined): Status {
   if (level === "high") return "action";
   if (level === "moderate") return "watch";
-  return "on-track";
+  if (level === "low") return "on-track";
+  return "unknown";
 }
 
 const STATUS_LABEL: Record<Status, string> = {
   "on-track": "ON TRACK",
   watch: "WATCH",
   action: "ACTION NEEDED",
+  unknown: "AWAITING DATA",
 };
+
+type WeightDeltaPolarity = "positive" | "negative" | "neutral";
+
+/**
+ * Phase-aware classification of a weekly weight delta. Returns "positive" when
+ * the delta matches the user's goal (down on cut, up on bulk, ~0 on maintain),
+ * "negative" when it goes the wrong way, "neutral" for tiny deltas during
+ * maintenance.
+ */
+function weightDeltaPolarity(
+  deltaLbs: number,
+  phase: Phase,
+): WeightDeltaPolarity {
+  if (phase === "cut") return deltaLbs <= 0 ? "positive" : "negative";
+  if (phase === "bulk") return deltaLbs >= 0 ? "positive" : "negative";
+  if (Math.abs(deltaLbs) <= 0.5) return "neutral";
+  return "negative";
+}
 
 export default function TodayScreen() {
   const { ready, weightKg, weightLbs, weightHistory, weightInput, setWeightInput, logWeight } =
@@ -128,6 +160,10 @@ export default function TodayScreen() {
 
   const today = new Date();
   const dateLabel = DATE_FMT.format(today).toUpperCase();
+  const deltaPolarity =
+    phase != null && weeklyDeltaLbs != null
+      ? weightDeltaPolarity(weeklyDeltaLbs, phase)
+      : "neutral";
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -142,6 +178,7 @@ export default function TodayScreen() {
             calorieTarget={calorieTarget}
             weightLbs={weightLbs}
             weeklyDeltaLbs={weeklyDeltaLbs}
+            deltaPolarity={deltaPolarity}
           />
         )}
 
@@ -210,6 +247,7 @@ type HeroCardProps = {
   calorieTarget: number | null;
   weightLbs: number | null;
   weeklyDeltaLbs: number | null;
+  deltaPolarity: WeightDeltaPolarity;
 };
 
 function HeroCard({
@@ -219,6 +257,7 @@ function HeroCard({
   calorieTarget,
   weightLbs,
   weeklyDeltaLbs,
+  deltaPolarity,
 }: HeroCardProps) {
   const deltaSign = weeklyDeltaLbs == null ? "" : weeklyDeltaLbs > 0 ? "+" : "";
   return (
@@ -259,7 +298,7 @@ function HeroCard({
               <Text
                 style={[
                   styles.heroDeltaLabel,
-                  weeklyDeltaLbs <= 0 ? styles.heroDeltaDown : styles.heroDeltaUp,
+                  styles[`heroDelta_${deltaPolarity}` as const],
                 ]}
               >
                 {deltaSign}
@@ -358,6 +397,7 @@ const styles = StyleSheet.create((theme) => ({
   "statusDot_on-track": { backgroundColor: theme.colors.positive },
   statusDot_watch: { backgroundColor: theme.colors.attention },
   statusDot_action: { backgroundColor: theme.colors.warning },
+  statusDot_unknown: { backgroundColor: theme.colors.textTertiary },
   statusLabel: {
     fontSize: 11,
     fontWeight: theme.fontWeight.semibold,
@@ -366,6 +406,7 @@ const styles = StyleSheet.create((theme) => ({
   "statusLabel_on-track": { color: theme.colors.positive },
   statusLabel_watch: { color: theme.colors.attention },
   statusLabel_action: { color: theme.colors.warning },
+  statusLabel_unknown: { color: theme.colors.textTertiary },
 
   heroCard: {
     marginHorizontal: 20,
@@ -453,8 +494,9 @@ const styles = StyleSheet.create((theme) => ({
     fontWeight: theme.fontWeight.semibold,
     marginTop: 4,
   },
-  heroDeltaDown: { color: theme.colors.positive },
-  heroDeltaUp: { color: theme.colors.attention },
+  heroDelta_positive: { color: theme.colors.positive },
+  heroDelta_negative: { color: theme.colors.attention },
+  heroDelta_neutral: { color: theme.colors.textTertiary },
 
   macroCard: {
     marginHorizontal: 20,
