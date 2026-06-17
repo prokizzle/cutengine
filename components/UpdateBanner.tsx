@@ -1,8 +1,15 @@
-import { useUpdates } from "expo-updates";
+import * as Sentry from "@sentry/react-native";
 import { Pressable, Text, View } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { applyUpdate } from "../lib/ota";
+
+type Props = {
+  /** Driven by `useUpdates().isUpdatePending` upstream so the root layout
+   * can also zero out the top safe-area inset for descendant screens — see
+   * `app/_layout.tsx`. */
+  visible: boolean;
+};
 
 /**
  * Slim banner that only renders when a downloaded OTA update is staged and
@@ -10,28 +17,32 @@ import { applyUpdate } from "../lib/ota";
  * the update immediately; otherwise the update takes effect on the next cold
  * start automatically.
  *
- * Mount this at the root, above the navigator, so it surfaces on every
- * screen.
+ * The banner paints its own background under the device top inset (no nested
+ * SafeAreaView) so that the root layout can also override the inset context
+ * for the navigator below it — preventing a duplicate inset under the bar.
  */
-export function UpdateBanner() {
-  const { isUpdatePending } = useUpdates();
-  if (!isUpdatePending) return null;
+export function UpdateBanner({ visible }: Props) {
+  const insets = useSafeAreaInsets();
+  if (!visible) return null;
+  const handlePress = () => {
+    applyUpdate().catch((err) => Sentry.captureException(err));
+  };
   return (
-    <SafeAreaView edges={["top"]} style={styles.safe}>
-      <Pressable onPress={applyUpdate} style={styles.banner}>
+    <View style={[styles.bar, { paddingTop: insets.top }]}>
+      <Pressable onPress={handlePress} style={styles.row}>
         <View style={styles.dot} />
         <Text style={styles.text}>Update ready — tap to restart</Text>
         <Text style={styles.cta}>RESTART</Text>
       </Pressable>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create((theme) => ({
-  safe: {
+  bar: {
     backgroundColor: theme.colors.info,
   },
-  banner: {
+  row: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,

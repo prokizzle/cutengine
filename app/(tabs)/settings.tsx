@@ -44,24 +44,40 @@ export default function SettingsScreen() {
   };
 
   const onCheckForUpdates = async () => {
-    if (!Updates.isEnabled) {
-      Alert.alert("Updates disabled", "OTA updates only run in release builds.");
-      return;
-    }
     setCheckingUpdate(true);
     try {
-      const staged = await checkAndFetchUpdate();
-      if (staged) {
-        Alert.alert(
-          "Update ready",
-          "Restart now to apply?",
-          [
-            { text: "Later", style: "cancel" },
-            { text: "Restart", onPress: () => { applyUpdate().catch(Sentry.captureException); } },
-          ],
-        );
-      } else {
-        Alert.alert("Up to date", "You're on the latest build for this channel.");
+      const outcome = await checkAndFetchUpdate();
+      switch (outcome.status) {
+        case "disabled":
+          Alert.alert("Updates disabled", "OTA updates only run in release builds.");
+          return;
+        case "up-to-date":
+          Alert.alert("Up to date", "You're on the latest build for this channel.");
+          return;
+        case "staged":
+        case "already-pending":
+          Alert.alert(
+            "Update ready",
+            outcome.status === "already-pending"
+              ? "An update is already waiting. Restart to apply?"
+              : "Restart now to apply?",
+            [
+              { text: "Later", style: "cancel" },
+              {
+                text: "Restart",
+                onPress: () => {
+                  applyUpdate().catch((err) => Sentry.captureException(err));
+                },
+              },
+            ],
+          );
+          return;
+        case "error":
+          Alert.alert(
+            "Update check failed",
+            "Couldn't reach the update server. Try again later.",
+          );
+          return;
       }
     } finally {
       setCheckingUpdate(false);

@@ -1,24 +1,36 @@
 import * as Sentry from "@sentry/react-native";
 import * as Updates from "expo-updates";
 
+export type UpdateCheckOutcome =
+  | { status: "disabled" }
+  | { status: "up-to-date" }
+  | { status: "staged" }
+  | { status: "already-pending" }
+  | { status: "error"; error: unknown };
+
 /**
  * Check for an OTA update on the current channel, download it if there is
- * one, and report whether a new bundle was actually staged. The bundle takes
- * effect on the next call to `applyUpdate()` (or on the next cold start).
+ * one, and report a discriminated outcome so callers can show the right
+ * message instead of collapsing every non-success into "up to date":
  *
- * No-ops in dev (Updates.isEnabled is false under Expo Go / dev client) and
- * swallows network errors so a failed check never disrupts the launch.
+ *   - `disabled`         — Updates module is off (Expo Go / dev client)
+ *   - `up-to-date`       — no update available on the server
+ *   - `staged`           — a new bundle was downloaded; restart to apply
+ *   - `already-pending`  — server returned a bundle we'd already fetched but
+ *                          haven't restarted into yet
+ *   - `error`            — checkForUpdate or fetchUpdate threw; also
+ *                          reported to Sentry
  */
-export async function checkAndFetchUpdate(): Promise<boolean> {
-  if (!Updates.isEnabled) return false;
+export async function checkAndFetchUpdate(): Promise<UpdateCheckOutcome> {
+  if (!Updates.isEnabled) return { status: "disabled" };
   try {
     const check = await Updates.checkForUpdateAsync();
-    if (!check.isAvailable) return false;
+    if (!check.isAvailable) return { status: "up-to-date" };
     const fetched = await Updates.fetchUpdateAsync();
-    return fetched.isNew;
-  } catch (err) {
-    Sentry.captureException(err);
-    return false;
+    return { status: fetched.isNew ? "staged" : "already-pending" };
+  } catch (error) {
+    Sentry.captureException(error);
+    return { status: "error", error };
   }
 }
 
