@@ -1,10 +1,10 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useProEntitlement } from "../hooks/useProEntitlement";
-import { persistUserProfile } from "../lib/cycleStore";
+import { hasUserProfile, persistUserProfile } from "../lib/cycleStore";
 import {
   USER_PROFILE_SINGLETON_ID,
   type Phase,
@@ -49,6 +49,22 @@ export default function OnboardingScreen() {
       refreshEntitlement().catch(console.error);
     }, [refreshEntitlement]),
   );
+
+  // Non-destructive guard: if a profile already exists we must never let
+  // onboarding overwrite it. This makes the gate's fail-toward-onboarding
+  // policy (lib/cycleStore.hasUserProfile) safe — landing here spuriously
+  // bounces straight back to the dashboard instead of clobbering data.
+  useEffect(() => {
+    let active = true;
+    hasUserProfile()
+      .then((exists) => {
+        if (active && exists) router.replace("/(tabs)");
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [router]);
 
   const finish = async (selectedPhase: Phase, deltaKg: number) => {
     try {

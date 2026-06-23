@@ -16,8 +16,9 @@ export default function TabLayout() {
   // First-launch gate. This must resolve BEFORE any tab screen mounts:
   // tab screens call getUserProfile(), which inserts the default singleton
   // and would make hasUserProfile() race to true, silently skipping
-  // onboarding. On error, fall through to the tabs rather than trapping
-  // the user on the onboarding screen.
+  // onboarding. If we can't confirm a profile, route to onboarding rather
+  // than stranding the user on a half-empty dashboard — onboarding itself
+  // guards against overwriting an existing profile.
   const [profileExists, setProfileExists] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -25,7 +26,7 @@ export default function TabLayout() {
       .then(setProfileExists)
       .catch((err) => {
         console.error("[TabLayout] hasUserProfile failed:", err);
-        setProfileExists(true);
+        setProfileExists(false);
       });
   }, []);
 
