@@ -1,6 +1,9 @@
 name: Linear Release
 
-# Scheduled release pipeline for the App Store app (com.feelingmindful.diet-plan).
+# Drives the App Store production pipeline in Linear Releases
+# (com.feelingmindful.diet-plan). The Linear pipeline is the "scheduled" type
+# (releases are tracked/staged before they ship) — this is NOT a cron schedule;
+# the workflow runs on push + manual dispatch only.
 # TestFlight is modeled as a STAGE on this single pipeline, not a separate one.
 #
 # - push to main  -> `sync`: lands new commits onto the current in-progress release.
