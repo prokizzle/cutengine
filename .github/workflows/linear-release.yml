@@ -1,0 +1,66 @@
+name: Linear Release
+
+# Scheduled release pipeline for the App Store app (com.feelingmindful.diet-plan).
+# TestFlight is modeled as a STAGE on this single pipeline, not a separate one.
+#
+# - push to main  -> `sync`: lands new commits onto the current in-progress release.
+# - workflow_dispatch -> cut / move / complete a specific version:
+#     * update   : create-or-update the release at `version` and set its `stage`
+#                  (e.g. code-freeze -> testflight -> submitted)
+#     * complete : mark the `version` release shipped (App Store release)
+#
+# Stage names below MUST match the stages configured in the Linear pipeline
+# (Settings -> Releases). Adjust the choice list to your pipeline's stages.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g. 2.1.0)"
+        required: true
+      stage:
+        description: "Stage to set on this release"
+        type: choice
+        required: false
+        options:
+          - code-freeze
+          - testflight
+          - submitted
+      complete:
+        description: "Mark this version shipped (App Store release)?"
+        type: boolean
+        default: false
+
+# Serialize release mutations so concurrent runs don't race on the pipeline.
+concurrency:
+  group: linear-release
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history required for commit scanning
+      - uses: linear/linear-release-action@v0
+        with:
+          access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
+          command: sync
+
+  release:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: linear/linear-release-action@v0
+        with:
+          access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
+          command: ${{ inputs.complete && 'complete' || 'update' }}
+          version: ${{ inputs.version }}
+          stage: ${{ inputs.stage }}
