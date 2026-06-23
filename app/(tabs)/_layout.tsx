@@ -16,8 +16,9 @@ export default function TabLayout() {
   // First-launch gate. This must resolve BEFORE any tab screen mounts:
   // tab screens call getUserProfile(), which inserts the default singleton
   // and would make hasUserProfile() race to true, silently skipping
-  // onboarding. On error, fall through to the tabs rather than trapping
-  // the user on the onboarding screen.
+  // onboarding. A confirmed-missing profile (false) routes to onboarding.
+  // On error we fall through to the tabs rather than trapping the user on
+  // onboarding (where the same store error recurs) — see hasUserProfile().
   const [profileExists, setProfileExists] = useState<boolean | null>(null);
 
   useEffect(() => {

@@ -32,10 +32,13 @@ export async function persistUserProfile(profile: UserProfile): Promise<void> {
 
 /** True when the singleton row exists — used to skip first-launch onboarding.
  *  Off-iOS returns true so the gate never traps non-iOS dev sessions.
- *  Errors deliberately fail OPEN (true): failing closed would re-run
- *  onboarding for an existing user after a transient store error, and
- *  completing it overwrites their saved profile. Failing open only means a
- *  brand-new user lands on the dashboard with defaults, fixable in Settings. */
+ *  A confirmed-missing profile (false) routes a new user to onboarding —
+ *  that is the path that recovers the "no profile" case.
+ *  Errors fail OPEN (true): if the store is momentarily unavailable we let
+ *  the user into the app rather than trapping them in onboarding, where the
+ *  same error recurs and a later re-save could overwrite an existing profile
+ *  once the store recovers. A genuinely broken store yields a degraded
+ *  dashboard, which is recoverable and non-destructive. */
 export async function hasUserProfile(): Promise<boolean> {
   if (Platform.OS !== "ios") return true;
   try {

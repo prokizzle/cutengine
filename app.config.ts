@@ -42,7 +42,7 @@ const config: ExpoConfig = {
     url: "https://u.expo.dev/fc6ac35c-8c91-4d68-a4b0-5a7cfdeb9749",
   },
   runtimeVersion: {
-    policy: "appVersion",
+    policy: "fingerprint",
   },
   plugins: [
     "expo-router",
@@ -54,6 +54,14 @@ const config: ExpoConfig = {
       },
     ],
     "./plugins/withSeedJson",
+    [
+      "expo-build-properties",
+      {
+        ios: {
+          deploymentTarget: "17.0",
+        },
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,
