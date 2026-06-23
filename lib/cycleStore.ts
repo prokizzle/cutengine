@@ -32,11 +32,13 @@ export async function persistUserProfile(profile: UserProfile): Promise<void> {
 
 /** True when the singleton row exists — used to skip first-launch onboarding.
  *  Off-iOS returns true so the gate never traps non-iOS dev sessions.
- *  Errors fail CLOSED (false): if we cannot confirm a profile, treat the user
- *  as new and route them to onboarding rather than stranding them on a
- *  half-empty dashboard. This is safe because onboarding guards against
- *  overwriting an existing profile (see app/onboarding.tsx), and when the
- *  store is genuinely broken a re-save fails too — so no data is lost. */
+ *  A confirmed-missing profile (false) routes a new user to onboarding —
+ *  that is the path that recovers the "no profile" case.
+ *  Errors fail OPEN (true): if the store is momentarily unavailable we let
+ *  the user into the app rather than trapping them in onboarding, where the
+ *  same error recurs and a later re-save could overwrite an existing profile
+ *  once the store recovers. A genuinely broken store yields a degraded
+ *  dashboard, which is recoverable and non-destructive. */
 export async function hasUserProfile(): Promise<boolean> {
   if (Platform.OS !== "ios") return true;
   try {
@@ -44,7 +46,7 @@ export async function hasUserProfile(): Promise<boolean> {
   } catch (err) {
     console.error("[CycleStore] hasUserProfile error:", err);
     Sentry.captureException(err);
-    return false;
+    return true;
   }
 }
 

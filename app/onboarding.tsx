@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react-native";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
@@ -51,16 +52,16 @@ export default function OnboardingScreen() {
   );
 
   // Non-destructive guard: if a profile already exists we must never let
-  // onboarding overwrite it. This makes the gate's fail-toward-onboarding
-  // policy (lib/cycleStore.hasUserProfile) safe — landing here spuriously
-  // bounces straight back to the dashboard instead of clobbering data.
+  // onboarding overwrite it — bounce straight back to the dashboard. Errors
+  // are reported (not silently swallowed); hasUserProfile fails open, so a
+  // store error resolves true here and also bounces, never trapping the user.
   useEffect(() => {
     let active = true;
     hasUserProfile()
       .then((exists) => {
         if (active && exists) router.replace("/(tabs)");
       })
-      .catch(() => {});
+      .catch((err) => Sentry.captureException(err));
     return () => {
       active = false;
     };
