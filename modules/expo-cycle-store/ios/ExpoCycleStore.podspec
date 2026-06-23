@@ -12,7 +12,7 @@ Pod::Spec.new do |s|
   s.homepage       = 'https://feelingmindful.com'
   s.platforms      = { :ios => '17.0' }
   s.swift_version  = '5.9'
-  s.source         = { git: 'https://github.com/feelingmindful/cutengine.git' }
+  s.source         = { path: '.' }
   s.static_framework = true
 
   s.dependency 'ExpoModulesCore'
