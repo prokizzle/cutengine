@@ -28,10 +28,14 @@ on:
           - code-freeze
           - testflight
           - submitted
-      complete:
-        description: "Mark this version shipped (App Store release)?"
-        type: boolean
-        default: false
+      command:
+        description: "update = create/move release; complete = mark shipped (App Store release)"
+        type: choice
+        required: true
+        default: update
+        options:
+          - update
+          - complete
 
 # Serialize release mutations so concurrent runs don't race on the pipeline.
 concurrency:
@@ -61,6 +65,6 @@ jobs:
       - uses: linear/linear-release-action@v0
         with:
           access_key: ${{ secrets.LINEAR_ACCESS_KEY }}
-          command: ${{ inputs.complete && 'complete' || 'update' }}
+          command: ${{ inputs.command }}
           version: ${{ inputs.version }}
           stage: ${{ inputs.stage }}
