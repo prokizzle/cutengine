@@ -31,7 +31,13 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
+
+# credentials — contain secrets, never commit
+credentials.json
+play-store-service-account.json
+credentials/
 
 # typescript
 *.tsbuildinfo
