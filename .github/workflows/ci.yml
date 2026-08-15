@@ -17,6 +17,7 @@ jobs:
           bun-version: latest
       - run: bun install --frozen-lockfile
       - run: bun run lint
+      - run: bun run test
       - name: Verify production seed asset config
         run: |
           if grep -q '!assets/data/seed-power.json' plugins/withSeedJson.ts; then
