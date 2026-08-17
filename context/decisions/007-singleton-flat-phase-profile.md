@@ -37,7 +37,7 @@ Validating in Swift on write, rather than only in TypeScript, puts the invariant
 - **A phase history log with the current phase derived from the latest entry.** Rejected as unnecessary for the features that exist; recorded in the design note as a deliberate limitation rather than an oversight.
 - **A nullable getter.** Rejected: it pushes a null check into every consumer to express a state that only exists before onboarding completes.
 - **Separate fields for deficit and surplus rate.** Rejected: two fields that must not disagree.
-- **Storing weight on the profile.** Rejected — see [Decision: HealthKit Is the Source of Truth for Weight](006-healthkit-weight-source-of-truth.md).
+- **Storing weight on the profile.** Rejected — see [Decision: HealthKit Is the Source of Truth for Body Measurements](006-healthkit-weight-source-of-truth.md).
 - **Validating only in TypeScript.** Rejected because the store is shared across apps.
 
 ## Outcomes
@@ -53,7 +53,7 @@ The default profile is a cut at half a kilogram of loss per week, which means a 
 - [Feature: Phase Management](../intent/feature-phase-management.md)
 - [Decision: Expo Router File-Based Routing](002-expo-router-file-based-routing.md)
 - [Decision: SwiftData in a Shared App Group](005-swiftdata-app-group-persistence.md)
-- [Decision: HealthKit Is the Source of Truth for Weight](006-healthkit-weight-source-of-truth.md)
+- [Decision: HealthKit Is the Source of Truth for Body Measurements](006-healthkit-weight-source-of-truth.md)
 - [Decision: Thermodynamic Calorie Targets](008-thermodynamic-calorie-targets.md)
 - [Pattern: Immutable Domain Mutators](../knowledge/patterns/immutable-domain-mutators.md)
 - [Pattern: Actor-Serialized Upsert](../knowledge/patterns/actor-serialized-upsert.md)

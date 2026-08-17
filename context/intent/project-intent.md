@@ -33,6 +33,7 @@ Partially built:
 - **Several Settings rows are stubs** that raise a placeholder alert: height, date of birth, sex, unit preferences, data export, and reset.
 - **The protocol timeline UI is built and tested but wired to nothing.** The components under `components/timeline/` have full test coverage and no screen imports them. Dose events are still mock data.
 - **Persistence is broader than the UI.** The native store handles compounds, schedules, dose rules, and meal rules; only the user profile and biofeedback slices are reachable from the app.
+- **Body-composition input has a HealthKit read foundation only.** The bridge and facade expose dated latest and trailing body-fat samples; manual methods, calibration, trends, and UI remain planned.
 
 Platform reality: iOS only. All three native modules declare `platforms: ["ios"]`, and the JavaScript layer degrades to neutral values elsewhere. Android configuration exists but no Android build is exercised.
 
@@ -42,6 +43,7 @@ Platform reality: iOS only. All three native modules declare `platforms: ["ios"]
 - [Phase Management](feature-phase-management.md) — cut, bulk, or maintain, with a target rate
 - [Calorie and Macro Targets](feature-calorie-macro-targets.md) — daily energy and macronutrient goals
 - [Weight Tracking](feature-weight-tracking.md) — read and write body weight through Apple Health
+- [Body Composition Input](feature-body-composition-input.md) — Apple Health body-fat read foundation, with later manual measurement methods planned
 - [Daily Check-In](feature-daily-check-in.md) — short phase-specific biofeedback questionnaire
 - [Compliance Risk Prediction](feature-compliance-risk-prediction.md) — flags days the user is likely to skip
 - [Phase Change Suggestions](feature-phase-change-suggestions.md) — advisory nudges from the weight trend
@@ -58,7 +60,7 @@ Platform reality: iOS only. All three native modules declare `platforms: ["ios"]
 - [Decision: Unistyles for Styling](../decisions/003-unistyles-styling.md)
 - [Decision: Local Swift Expo Modules](../decisions/004-local-swift-expo-modules.md)
 - [Decision: SwiftData in a Shared App Group](../decisions/005-swiftdata-app-group-persistence.md)
-- [Decision: HealthKit Is the Source of Truth for Weight](../decisions/006-healthkit-weight-source-of-truth.md)
+- [Decision: HealthKit Is the Source of Truth for Body Measurements](../decisions/006-healthkit-weight-source-of-truth.md)
 - [Decision: Singleton Flat Phase Profile](../decisions/007-singleton-flat-phase-profile.md)
 - [Decision: Thermodynamic Calorie Targets](../decisions/008-thermodynamic-calorie-targets.md)
 - [Decision: Compliance Prediction Model](../decisions/009-compliance-prediction-model.md)

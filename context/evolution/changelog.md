@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-17 — HealthKit Body-Fat Read Foundation
+
+- Added body-fat read authorization and dated latest/history queries to the local HealthKit module and its TypeScript facade.
+- Kept Apple Health as the source of truth: the app does not persist body-fat values, invent a missing value, or claim that an empty result proves permission denial.
+- Added the body-composition feature intent and expanded Decision 006 from weight ownership to body-measurement ownership.
+
 ## [Current State] - Context Mesh Added
 
 Context Mesh was adopted retroactively on 2026-08-13, documenting a codebase that began on 2026-06-04 and had 39 commits at the time of adoption. Everything below describes what already existed; nothing here was built as part of the adoption.
@@ -81,6 +87,7 @@ These were found while documenting and are stated here so they are not rediscove
 - **Two secret-bearing files sit untracked in the working tree** and are not matched by any `.gitignore` rule: `credentials.json` (containing an inline certificate password) and `play-store-service-account.json`. Nothing is committed, but `git add -A` would stage them.
 
 ---
-*Context Mesh added: 2026-08-13*
-*This changelog documents the state when Context Mesh was added.*
-*Future changes will be tracked below.*
+
+_Context Mesh added: 2026-08-13_
+_This changelog documents the state when Context Mesh was added._
+_Future changes will be tracked below._

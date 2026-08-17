@@ -27,6 +27,7 @@ The sufficiency gate stated as a named constant and checked immediately:
 const records = buildDayRecords(entries, profile, now);
 if (records.length < MIN_HEURISTIC_DAYS) return null;
 ```
+
 `utils/compliancePredictor.ts:79`
 
 A non-positive computed calorie target is treated as no target, rather than shown:
@@ -35,6 +36,7 @@ A non-positive computed calorie target is treated as no target, rather than show
 // app/(tabs)/index.tsx — a target at or below zero means the inputs were wrong,
 // so nothing is displayed and the user is prompted to log a weight instead.
 ```
+
 `app/(tabs)/index.tsx:144-149`
 
 Where a lower-confidence answer exists, the absent value cascades into it rather than into a fabricated number — the prediction ladder returns `null` under a week of history, a smoothed frequency estimate between one and four weeks, and a trained model beyond that.
@@ -56,6 +58,7 @@ Where a lower-confidence answer exists, the absent value cascades into it rather
 - [Decision: Thermodynamic Calorie Targets](../../decisions/008-thermodynamic-calorie-targets.md)
 - [Feature: Compliance Risk Prediction](../../intent/feature-compliance-risk-prediction.md)
 - [Feature: Weight Tracking](../../intent/feature-weight-tracking.md)
+- [Feature: Body Composition Input](../../intent/feature-body-composition-input.md)
 - [Feature: Calorie and Macro Targets](../../intent/feature-calorie-macro-targets.md)
 - [Pattern: Pure Domain Function With an Injected Clock](pure-domain-function-injected-clock.md)
 - [Pattern: Self-Suppressing Card Component](self-suppressing-card-component.md)

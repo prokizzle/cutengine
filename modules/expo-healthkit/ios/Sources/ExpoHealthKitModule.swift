@@ -27,9 +27,21 @@ struct WeightSampleRecord: Record {
     }
 }
 
-/// HealthKit bridge: bodyMass read/write, active energy, weight history.
-/// HealthKit stays the source of truth for body weight — CycleStore never
-/// duplicates it (CUTIOS-16 architecture).
+struct BodyFatSampleRecord: Record {
+    @Field var dateISO: String = ""
+    @Field var valueFraction: Double = 0
+
+    init() {}
+
+    init(dateISO: String, valueFraction: Double) {
+        self.dateISO = dateISO
+        self.valueFraction = valueFraction
+    }
+}
+
+/// HealthKit bridge: body-mass read/write plus body-composition and activity reads.
+/// HealthKit stays the source of truth for body measurements — CycleStore never
+/// duplicates them (Decision 006).
 public class ExpoHealthKitModule: Module {
     private static let healthStore = HKHealthStore()
 
@@ -95,12 +107,19 @@ public class ExpoHealthKitModule: Module {
             )
         }
 
+        AsyncFunction("getLatestBodyFat") { () -> BodyFatSampleRecord? in
+            let samples = try await Self.querySamples(
+                type: HKQuantityType(.bodyFatPercentage),
+                predicate: nil,
+                limit: 1,
+                ascending: false
+            )
+            guard let sample = samples.first else { return nil }
+            return Self.bodyFatRecord(sample)
+        }
+
         AsyncFunction("getWeightSamples") { (startDateISO: String) -> [WeightSampleRecord] in
-            guard let start = Self.isoFormatter.date(from: startDateISO)
-                ?? Self.isoFallbackFormatter.date(from: startDateISO)
-            else {
-                throw HealthKitBridgeError.invalidDate(startDateISO)
-            }
+            let start = try Self.parseDate(startDateISO)
             let predicate = HKQuery.predicateForSamples(
                 withStart: start,
                 end: Date(),
@@ -119,6 +138,22 @@ public class ExpoHealthKitModule: Module {
                 )
             }
         }
+
+        AsyncFunction("getBodyFatSamples") {
+            (startDateISO: String, endDateISO: String) -> [BodyFatSampleRecord] in
+            let predicate = HKQuery.predicateForSamples(
+                withStart: try Self.parseDate(startDateISO),
+                end: try Self.parseDate(endDateISO),
+                options: .strictStartDate
+            )
+            let samples = try await Self.querySamples(
+                type: HKQuantityType(.bodyFatPercentage),
+                predicate: predicate,
+                limit: HKObjectQueryNoLimit,
+                ascending: true
+            )
+            return samples.map(Self.bodyFatRecord)
+        }
     }
 
     private static func quantityType(_ identifier: String) throws -> HKQuantityType {
@@ -134,6 +169,20 @@ public class ExpoHealthKitModule: Module {
         default:
             throw HealthKitBridgeError.unknownTypeIdentifier(identifier)
         }
+    }
+
+    private static func parseDate(_ value: String) throws -> Date {
+        guard let date = isoFormatter.date(from: value) ?? isoFallbackFormatter.date(from: value) else {
+            throw HealthKitBridgeError.invalidDate(value)
+        }
+        return date
+    }
+
+    private static func bodyFatRecord(_ sample: HKQuantitySample) -> BodyFatSampleRecord {
+        BodyFatSampleRecord(
+            dateISO: isoFormatter.string(from: sample.startDate),
+            valueFraction: sample.quantity.doubleValue(for: .percent())
+        )
     }
 
     private static func querySamples(

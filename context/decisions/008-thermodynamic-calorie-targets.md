@@ -48,7 +48,7 @@ The directory referenced in `CLAUDE.md` as `modules/expo-calorie-engine` does no
 - [Feature: Calorie and Macro Targets](../intent/feature-calorie-macro-targets.md)
 - [Feature: Phase Management](../intent/feature-phase-management.md)
 - [Decision: Singleton Flat Phase Profile](007-singleton-flat-phase-profile.md)
-- [Decision: HealthKit Is the Source of Truth for Weight](006-healthkit-weight-source-of-truth.md)
+- [Decision: HealthKit Is the Source of Truth for Body Measurements](006-healthkit-weight-source-of-truth.md)
 - [Pattern: Named Thresholds With Recorded Rationale](../knowledge/patterns/named-thresholds-with-rationale.md)
 - [Pattern: Null Means Insufficient Evidence](../knowledge/patterns/null-means-insufficient-evidence.md)
 - [Anti-pattern: Stale Stack Documentation](../knowledge/anti-patterns/stale-stack-documentation.md)

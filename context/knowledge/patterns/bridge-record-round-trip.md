@@ -37,6 +37,7 @@ struct CompoundRecord: Record {
     }
 }
 ```
+
 `ExpoBridgeRecords.swift:151-188`
 
 Date bridging, tolerant on the way in and precise on the way out:
@@ -45,6 +46,7 @@ Date bridging, tolerant on the way in and precise on the way out:
 // Encode with .withInternetDateTime + .withFractionalSeconds.
 // Decode with fractional first, plain ISO8601 as fallback, else throw .invalidDate.
 ```
+
 `ExpoBridgeRecords.swift:57-79`, mirrored at `ExpoHealthKitModule.swift:36-46`
 
 The singleton-identity rule enforced at the boundary — whatever identifier JavaScript sent is discarded, so every read and write addresses the same row:
@@ -75,6 +77,7 @@ Where a module builds a dictionary by hand instead of using a record, optionals 
 - [Decision: Singleton Flat Phase Profile](../../decisions/007-singleton-flat-phase-profile.md)
 - [Feature: Protocol Entry](../../intent/feature-protocol-entry.md)
 - [Feature: Weight Tracking](../../intent/feature-weight-tracking.md)
+- [Feature: Body Composition Input](../../intent/feature-body-composition-input.md)
 - [Pattern: Actor-Serialized Upsert](actor-serialized-upsert.md)
 - [Pattern: Native Module Behind a lib Facade](native-module-behind-lib-facade.md)
 

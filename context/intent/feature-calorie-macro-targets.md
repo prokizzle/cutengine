@@ -14,7 +14,7 @@ When the app cannot compute a sensible target — no weight available, or a comp
 
 A daily calorie number is the single piece of information users open this kind of app to get. Everything else in the product exists to make that number correct and keep it correct.
 
-Deriving the number from a target *rate* rather than asking the user to pick a calorie figure is the point: users know they want to lose a pound a week, and they do not know what that means in calories. Recomputing from current weight means the number moves as they do, which is precisely the failure mode of setting a target once and never revisiting it.
+Deriving the number from a target _rate_ rather than asking the user to pick a calorie figure is the point: users know they want to lose a pound a week, and they do not know what that means in calories. Recomputing from current weight means the number moves as they do, which is precisely the failure mode of setting a target once and never revisiting it.
 
 Refusing to display a nonsense number matters more than it sounds. A visibly absent target prompts the user to log a weight; a fabricated one silently teaches them to eat wrong.
 
@@ -36,7 +36,7 @@ Refusing to display a nonsense number matters more than it sounds. A visibly abs
 - [Feature: Phase Management](feature-phase-management.md)
 - [Feature: Weight Tracking](feature-weight-tracking.md)
 - [Decision: Thermodynamic Calorie Targets](../decisions/008-thermodynamic-calorie-targets.md)
-- [Decision: HealthKit Is the Source of Truth for Weight](../decisions/006-healthkit-weight-source-of-truth.md)
+- [Decision: HealthKit Is the Source of Truth for Body Measurements](../decisions/006-healthkit-weight-source-of-truth.md)
 - [Pattern: Pure Domain Function With an Injected Clock](../knowledge/patterns/pure-domain-function-injected-clock.md)
 - [Pattern: Null Means Insufficient Evidence](../knowledge/patterns/null-means-insufficient-evidence.md)
 - [Feature: Meal Plan](feature-meal-plan.md)

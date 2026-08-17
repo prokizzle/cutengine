@@ -1,12 +1,27 @@
 import { Platform } from "react-native";
 
+export type BodyFatSample = {
+  date: string;
+  fraction: number;
+};
+
 // Local Expo Module — resolved at build time, not by tsc
 const ExpoHealthKit = require("../modules/expo-healthkit/src").default as {
   requestAuthorization: (read: string[], write: string[]) => Promise<boolean>;
   saveWeight: (kg: number, date?: Date) => Promise<void>;
   getLatestWeight: () => Promise<{ valueKg: number } | null>;
   getActiveEnergyToday: () => Promise<number>;
-  getWeightSamples: (startDateISO: string) => Promise<{ dateISO: string; valueKg: number }[]>;
+  getWeightSamples: (
+    startDateISO: string,
+  ) => Promise<{ dateISO: string; valueKg: number }[]>;
+  getLatestBodyFat: () => Promise<{
+    dateISO: string;
+    valueFraction: number;
+  } | null>;
+  getBodyFatSamples: (
+    startDateISO: string,
+    endDateISO: string,
+  ) => Promise<{ dateISO: string; valueFraction: number }[]>;
 };
 
 let initialized = false;
@@ -16,7 +31,7 @@ export async function initHealthKit(): Promise<boolean> {
   if (initialized) return true;
   try {
     const ok = await ExpoHealthKit.requestAuthorization(
-      ["bodyMass", "activeEnergyBurned", "stepCount"],
+      ["bodyMass", "bodyFatPercentage", "activeEnergyBurned", "stepCount"],
       ["bodyMass"],
     );
     initialized = ok;
@@ -53,4 +68,28 @@ export async function readActiveEnergy(): Promise<number | null> {
   if (Platform.OS !== "ios") return null;
   const kcal = await ExpoHealthKit.getActiveEnergyToday();
   return Math.round(kcal) || null;
+}
+
+export async function readLatestBodyFat(): Promise<BodyFatSample | null> {
+  if (Platform.OS !== "ios") return null;
+  const sample = await ExpoHealthKit.getLatestBodyFat();
+  return sample
+    ? { date: sample.dateISO, fraction: sample.valueFraction }
+    : null;
+}
+
+export async function readBodyFatHistory(
+  days = 60,
+  now: Date = new Date(),
+): Promise<BodyFatSample[]> {
+  if (Platform.OS !== "ios") return [];
+  const start = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+  const samples = await ExpoHealthKit.getBodyFatSamples(
+    start.toISOString(),
+    now.toISOString(),
+  );
+  return samples.map((sample) => ({
+    date: sample.dateISO,
+    fraction: sample.valueFraction,
+  }));
 }
