@@ -59,7 +59,7 @@ The store's native surface is broader than the app uses: compounds, schedules, d
 - [Feature: Protocol Entry](../intent/feature-protocol-entry.md)
 - [Decision: Tech Stack](001-tech-stack.md)
 - [Decision: SwiftData in a Shared App Group](005-swiftdata-app-group-persistence.md)
-- [Decision: HealthKit Is the Source of Truth for Weight](006-healthkit-weight-source-of-truth.md)
+- [Decision: HealthKit Is the Source of Truth for Body Measurements](006-healthkit-weight-source-of-truth.md)
 - [Decision: On-Device Token-Opaque Natural-Language Parsing](010-on-device-token-opaque-nl-parsing.md)
 - [Pattern: Native Module Behind a lib Facade](../knowledge/patterns/native-module-behind-lib-facade.md)
 - [Pattern: Bridge Record Round Trip](../knowledge/patterns/bridge-record-round-trip.md)

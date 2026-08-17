@@ -51,7 +51,7 @@ The JSON-blob decision has held: cadence shapes have not needed a migration.
 - [Feature: Meal Plan](../intent/feature-meal-plan.md)
 - [Decision: Local Swift Expo Modules](004-local-swift-expo-modules.md)
 - [Decision: Singleton Flat Phase Profile](007-singleton-flat-phase-profile.md)
-- [Decision: HealthKit Is the Source of Truth for Weight](006-healthkit-weight-source-of-truth.md)
+- [Decision: HealthKit Is the Source of Truth for Body Measurements](006-healthkit-weight-source-of-truth.md)
 - [Pattern: Actor-Serialized Upsert](../knowledge/patterns/actor-serialized-upsert.md)
 - [Pattern: Bridge Record Round Trip](../knowledge/patterns/bridge-record-round-trip.md)
 - [Pattern: Immutable Domain Mutators](../knowledge/patterns/immutable-domain-mutators.md)

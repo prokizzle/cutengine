@@ -12,6 +12,11 @@ export interface WeightSample {
   valueKg: number;
 }
 
+export interface BodyFatSample {
+  dateISO: string;
+  valueFraction: number;
+}
+
 // Optional resolution: the module is iOS-only, and eager requireNativeModule
 // would throw at import time on Android/web before lib-level Platform guards run.
 const NativeModule = requireOptionalNativeModule("ExpoHealthKit") as any;
@@ -24,11 +29,23 @@ export default {
   saveWeight: (kg: number, date?: Date): Promise<void> =>
     NativeModule.saveWeight(kg, date ?? null),
 
-  getLatestWeight: (): Promise<{ valueKg: number } | null> => NativeModule.getLatestWeight(),
+  getLatestWeight: (): Promise<{ valueKg: number } | null> =>
+    NativeModule.getLatestWeight(),
 
-  getActiveEnergyToday: (): Promise<number> => NativeModule.getActiveEnergyToday(),
+  getActiveEnergyToday: (): Promise<number> =>
+    NativeModule.getActiveEnergyToday(),
+
+  getLatestBodyFat: (): Promise<BodyFatSample | null> =>
+    NativeModule.getLatestBodyFat(),
 
   /** bodyMass samples since `startDateISO`, ascending by date. */
   getWeightSamples: (startDateISO: string): Promise<WeightSample[]> =>
     NativeModule.getWeightSamples(startDateISO),
+
+  /** bodyFatPercentage samples in the requested date window, ascending by date. */
+  getBodyFatSamples: (
+    startDateISO: string,
+    endDateISO: string,
+  ): Promise<BodyFatSample[]> =>
+    NativeModule.getBodyFatSamples(startDateISO, endDateISO),
 };

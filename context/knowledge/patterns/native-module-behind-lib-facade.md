@@ -29,6 +29,7 @@ const CycleStore = require("../modules/expo-cycle-store/src").default as {
   saveBiofeedbackEntry: (entry: BiofeedbackEntry) => Promise<void>;
 };
 ```
+
 `lib/cycleStore.ts:8-15`
 
 A read: platform guard, then catch, report, degrade.
@@ -45,6 +46,7 @@ export async function hasUserProfile(): Promise<boolean> {
   }
 }
 ```
+
 `lib/cycleStore.ts:42-51`
 
 The same handle shape in the HealthKit wrapper, which additionally reshapes native samples into the form the trend engine consumes:
@@ -52,10 +54,13 @@ The same handle shape in the HealthKit wrapper, which additionally reshapes nati
 ```ts
 const ExpoHealthKit = require("../modules/expo-healthkit/src").default as {
   requestAuthorization: (read: string[], write: string[]) => Promise<boolean>;
-  getWeightSamples: (startDateISO: string) => Promise<{ dateISO: string; valueKg: number }[]>;
+  getWeightSamples: (
+    startDateISO: string,
+  ) => Promise<{ dateISO: string; valueKg: number }[]>;
 };
 ```
-`lib/healthKit.ts:4`
+
+`lib/healthKit.ts:10-26`
 
 ## Files Using This Pattern
 
@@ -69,10 +74,11 @@ The one exception: `app/(tabs)/protocol.tsx` imports the parser module directly 
 ## Related
 
 - [Decision: Local Swift Expo Modules](../../decisions/004-local-swift-expo-modules.md)
-- [Decision: HealthKit Is the Source of Truth for Weight](../../decisions/006-healthkit-weight-source-of-truth.md)
+- [Decision: HealthKit Is the Source of Truth for Body Measurements](../../decisions/006-healthkit-weight-source-of-truth.md)
 - [Decision: SwiftData in a Shared App Group](../../decisions/005-swiftdata-app-group-persistence.md)
 - [Decision: Sentry for Error Reporting](../../decisions/013-sentry-error-reporting.md)
 - [Feature: Weight Tracking](../../intent/feature-weight-tracking.md)
+- [Feature: Body Composition Input](../../intent/feature-body-composition-input.md)
 - [Feature: Protocol Entry](../../intent/feature-protocol-entry.md)
 - [Pattern: Capture Before Degrading](capture-before-degrading.md)
 - [Pattern: Bridge Record Round Trip](bridge-record-round-trip.md)

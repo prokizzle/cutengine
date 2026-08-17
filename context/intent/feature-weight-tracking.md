@@ -40,7 +40,7 @@ Suppressing the rate below two samples avoids the worst failure of trend display
 - [Project Intent](project-intent.md)
 - [Feature: Calorie and Macro Targets](feature-calorie-macro-targets.md)
 - [Feature: Phase Change Suggestions](feature-phase-change-suggestions.md)
-- [Decision: HealthKit Is the Source of Truth for Weight](../decisions/006-healthkit-weight-source-of-truth.md)
+- [Decision: HealthKit Is the Source of Truth for Body Measurements](../decisions/006-healthkit-weight-source-of-truth.md)
 - [Decision: Local Swift Expo Modules](../decisions/004-local-swift-expo-modules.md)
 - [Pattern: Native Module Behind a lib Facade](../knowledge/patterns/native-module-behind-lib-facade.md)
 - [Pattern: Null Means Insufficient Evidence](../knowledge/patterns/null-means-insufficient-evidence.md)

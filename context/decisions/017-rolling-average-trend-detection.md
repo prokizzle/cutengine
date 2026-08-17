@@ -49,7 +49,7 @@ The thresholds are heuristic and are recorded as such in the source, each with a
 - [Project Intent](../intent/project-intent.md)
 - [Feature: Phase Change Suggestions](../intent/feature-phase-change-suggestions.md)
 - [Feature: Weight Tracking](../intent/feature-weight-tracking.md)
-- [Decision: HealthKit Is the Source of Truth for Weight](006-healthkit-weight-source-of-truth.md)
+- [Decision: HealthKit Is the Source of Truth for Body Measurements](006-healthkit-weight-source-of-truth.md)
 - [Decision: Singleton Flat Phase Profile](007-singleton-flat-phase-profile.md)
 - [Pattern: Pure Domain Function With an Injected Clock](../knowledge/patterns/pure-domain-function-injected-clock.md)
 - [Pattern: Null Means Insufficient Evidence](../knowledge/patterns/null-means-insufficient-evidence.md)

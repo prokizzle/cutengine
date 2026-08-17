@@ -39,7 +39,7 @@ Keeping this advisory rather than automatic is a trust decision. Phase is the us
 - [Feature: Weight Tracking](feature-weight-tracking.md)
 - [Feature: Phase Management](feature-phase-management.md)
 - [Decision: Rolling-Average Trend Detection](../decisions/017-rolling-average-trend-detection.md)
-- [Decision: HealthKit Is the Source of Truth for Weight](../decisions/006-healthkit-weight-source-of-truth.md)
+- [Decision: HealthKit Is the Source of Truth for Body Measurements](../decisions/006-healthkit-weight-source-of-truth.md)
 - [Pattern: Pure Domain Function With an Injected Clock](../knowledge/patterns/pure-domain-function-injected-clock.md)
 - [Pattern: Null Means Insufficient Evidence](../knowledge/patterns/null-means-insufficient-evidence.md)
 - [Pattern: Named Thresholds With Recorded Rationale](../knowledge/patterns/named-thresholds-with-rationale.md)
