@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react-native";
 import { Platform } from "react-native";
 
 export type BodyFatSample = {
@@ -72,10 +73,16 @@ export async function readActiveEnergy(): Promise<number | null> {
 
 export async function readLatestBodyFat(): Promise<BodyFatSample | null> {
   if (Platform.OS !== "ios") return null;
-  const sample = await ExpoHealthKit.getLatestBodyFat();
-  return sample
-    ? { date: sample.dateISO, fraction: sample.valueFraction }
-    : null;
+  try {
+    const sample = await ExpoHealthKit.getLatestBodyFat();
+    return sample
+      ? { date: sample.dateISO, fraction: sample.valueFraction }
+      : null;
+  } catch (err) {
+    console.error("[HealthKit] getLatestBodyFat error:", err);
+    Sentry.captureException(err);
+    return null;
+  }
 }
 
 export async function readBodyFatHistory(
@@ -83,13 +90,19 @@ export async function readBodyFatHistory(
   now: Date = new Date(),
 ): Promise<BodyFatSample[]> {
   if (Platform.OS !== "ios") return [];
-  const start = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
-  const samples = await ExpoHealthKit.getBodyFatSamples(
-    start.toISOString(),
-    now.toISOString(),
-  );
-  return samples.map((sample) => ({
-    date: sample.dateISO,
-    fraction: sample.valueFraction,
-  }));
+  try {
+    const start = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+    const samples = await ExpoHealthKit.getBodyFatSamples(
+      start.toISOString(),
+      now.toISOString(),
+    );
+    return samples.map((sample) => ({
+      date: sample.dateISO,
+      fraction: sample.valueFraction,
+    }));
+  } catch (err) {
+    console.error("[HealthKit] getBodyFatSamples error:", err);
+    Sentry.captureException(err);
+    return [];
+  }
 }

@@ -47,7 +47,7 @@ Date bridging, tolerant on the way in and precise on the way out:
 // Decode with fractional first, plain ISO8601 as fallback, else throw .invalidDate.
 ```
 
-`ExpoBridgeRecords.swift:57-79`, mirrored at `ExpoHealthKitModule.swift:36-46`
+`ExpoBridgeRecords.swift:57-79`, mirrored at `ExpoHealthKitModule.swift:48-58`
 
 The singleton-identity rule enforced at the boundary — whatever identifier JavaScript sent is discarded, so every read and write addresses the same row:
 

@@ -11,6 +11,11 @@ jest.mock("../modules/expo-healthkit/src/index", () => ({
   },
 }));
 
+jest.mock("@sentry/react-native", () => ({
+  captureException: jest.fn(),
+}));
+
+import * as Sentry from "@sentry/react-native";
 import { Platform } from "react-native";
 import ExpoHealthKit from "../modules/expo-healthkit/src";
 import {
@@ -23,6 +28,7 @@ const mockRequestAuthorization =
   ExpoHealthKit.requestAuthorization as jest.Mock;
 const mockGetLatestBodyFat = ExpoHealthKit.getLatestBodyFat as jest.Mock;
 const mockGetBodyFatSamples = ExpoHealthKit.getBodyFatSamples as jest.Mock;
+const mockCaptureException = Sentry.captureException as jest.Mock;
 
 const setPlatform = (os: string) => {
   Object.defineProperty(Platform, "OS", { configurable: true, value: os });
@@ -84,5 +90,22 @@ describe("body-fat HealthKit reads", () => {
     await expect(readBodyFatHistory()).resolves.toEqual([]);
     expect(mockGetLatestBodyFat).not.toHaveBeenCalled();
     expect(mockGetBodyFatSamples).not.toHaveBeenCalled();
+  });
+
+  it("reports native read failures and returns neutral values", async () => {
+    const error = new Error("HealthKit unavailable");
+    const consoleError = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    mockGetLatestBodyFat.mockRejectedValue(error);
+    mockGetBodyFatSamples.mockRejectedValue(error);
+
+    await expect(readLatestBodyFat()).resolves.toBeNull();
+    await expect(readBodyFatHistory()).resolves.toEqual([]);
+    expect(mockCaptureException).toHaveBeenCalledTimes(2);
+    expect(mockCaptureException).toHaveBeenNthCalledWith(1, error);
+    expect(mockCaptureException).toHaveBeenNthCalledWith(2, error);
+
+    consoleError.mockRestore();
   });
 });

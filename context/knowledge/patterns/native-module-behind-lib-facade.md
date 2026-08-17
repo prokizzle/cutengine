@@ -60,7 +60,7 @@ const ExpoHealthKit = require("../modules/expo-healthkit/src").default as {
 };
 ```
 
-`lib/healthKit.ts:4`
+`lib/healthKit.ts:10-26`
 
 ## Files Using This Pattern
 

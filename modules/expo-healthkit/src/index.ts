@@ -42,7 +42,7 @@ export default {
   getWeightSamples: (startDateISO: string): Promise<WeightSample[]> =>
     NativeModule.getWeightSamples(startDateISO),
 
-  /** bodyFatPercentage samples in the inclusive date window, ascending by date. */
+  /** bodyFatPercentage samples in the requested date window, ascending by date. */
   getBodyFatSamples: (
     startDateISO: string,
     endDateISO: string,

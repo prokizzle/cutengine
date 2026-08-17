@@ -2,7 +2,7 @@
 
 ## 2026-08-17 — HealthKit Body-Fat Read Foundation
 
-- Added body-fat read authorization and dated latest/history queries to the local HealthKit module and its TypeScript facade.
+- Added body-fat read authorization and dated latest/history queries to the local HealthKit module; the TypeScript facade reports query failures and degrades to neutral values.
 - Kept Apple Health as the source of truth: the app does not persist body-fat values, invent a missing value, or claim that an empty result proves permission denial.
 - Added the body-composition feature intent and expanded Decision 006 from weight ownership to body-measurement ownership.
 
