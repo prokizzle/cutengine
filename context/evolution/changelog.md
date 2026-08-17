@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-17 — Navy and Caliper Body-Fat Estimators
+
+- Ported the original CutEngine's male Navy and abdominal-caliper equations as pure domain functions with explicit input units and HealthKit-fraction outputs.
+- Invalid, non-finite, and physically impossible measurements now produce an absent result instead of NaN, Infinity, or a plausible default.
+- Kept manual entry, method tagging, weighted blending, DEXA calibration, trends, and UI outside this slice.
+
 ## 2026-08-17 — HealthKit Body-Fat Read Foundation
 
 - Added body-fat read authorization and dated latest/history queries to the local HealthKit module; the TypeScript facade reports query failures and degrades to neutral values.

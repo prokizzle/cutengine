@@ -4,7 +4,7 @@
 
 CutEngine uses body-fat readings already present in Apple Health as the automatic input for its body-composition signal. It reads the newest available reading and a trailing history without asking the user to maintain a second copy inside the app.
 
-This first slice establishes the read path only. Manual Navy tape, caliper, and DEXA entry, calibration, trend interpretation, and user interface work remain planned separately.
+The app also carries the proven male Navy tape and abdominal-caliper estimators from the original CutEngine. They produce the same fractional representation used by Apple Health and reject invalid measurements instead of inventing a result. Manual entry, DEXA entry, calibration, trend interpretation, and user interface work remain planned separately.
 
 When no reading is available, the app exposes an absent result rather than inventing a body-fat value. Apple Health does not reveal whether an empty read means no samples or denied read access, so the app does not claim to distinguish those cases.
 
@@ -22,7 +22,10 @@ Body-fat estimates from consumer devices can be biased, but the product uses cha
 - [x] An unavailable newest reading is represented as absent, not zero
 - [x] Body-fat values remain owned by Apple Health and are not copied into app persistence
 - [x] Empty reads are not described as confirmed permission denial or a confirmed empty Health store
-- [x] Manual entry, calibration, trend interpretation, and body-composition UI remain outside this slice
+- [x] Male Navy tape measurements can be estimated from waist, neck, and height in inches
+- [x] Abdominal-caliper measurements can be estimated from millimeters
+- [x] Estimators produce fractions and return an absent result for invalid measurements
+- [x] Manual entry, calibration, trend interpretation, and body-composition UI remain outside these slices
 
 ## Related
 
@@ -38,4 +41,4 @@ Body-fat estimates from consumer devices can be biased, but the product uses cha
 
 - **Created**: 2026-08-17 (Phase: Intent)
 - **Status**: Active
-- **Note**: The HealthKit read foundation is tracked by BOD-50; later roadmap slices add manual methods, calibration, trends, and UI.
+- **Note**: BOD-50 added the HealthKit read foundation and BOD-51 ported the male Navy and abdominal-caliper estimators; later roadmap slices add manual entry, calibration, trends, and UI.
