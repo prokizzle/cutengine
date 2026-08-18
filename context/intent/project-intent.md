@@ -33,7 +33,7 @@ Partially built:
 - **Several Settings rows are stubs** that raise a placeholder alert: height, date of birth, sex, unit preferences, data export, and reset.
 - **The protocol timeline UI is built and tested but wired to nothing.** The components under `components/timeline/` have full test coverage and no screen imports them. Dose events are still mock data.
 - **Persistence is broader than the UI.** The native store handles compounds, schedules, dose rules, and meal rules; only the user profile and biofeedback slices are reachable from the app.
-- **Body-composition input has a HealthKit read foundation only.** The bridge and facade expose dated latest and trailing body-fat samples; manual methods, calibration, trends, and UI remain planned.
+- **Body-composition input has a HealthKit read foundation and pure estimators.** The bridge and facade expose dated latest and trailing body-fat samples, and the legacy male Navy and abdominal-caliper estimators are ported; manual entry, calibration, trends, and UI remain planned.
 
 Platform reality: iOS only. All three native modules declare `platforms: ["ios"]`, and the JavaScript layer degrades to neutral values elsewhere. Android configuration exists but no Android build is exercised.
 
@@ -43,7 +43,7 @@ Platform reality: iOS only. All three native modules declare `platforms: ["ios"]
 - [Phase Management](feature-phase-management.md) — cut, bulk, or maintain, with a target rate
 - [Calorie and Macro Targets](feature-calorie-macro-targets.md) — daily energy and macronutrient goals
 - [Weight Tracking](feature-weight-tracking.md) — read and write body weight through Apple Health
-- [Body Composition Input](feature-body-composition-input.md) — Apple Health body-fat read foundation, with later manual measurement methods planned
+- [Body Composition Input](feature-body-composition-input.md) — Apple Health body-fat reads plus Navy and caliper estimation, with manual entry still planned
 - [Daily Check-In](feature-daily-check-in.md) — short phase-specific biofeedback questionnaire
 - [Compliance Risk Prediction](feature-compliance-risk-prediction.md) — flags days the user is likely to skip
 - [Phase Change Suggestions](feature-phase-change-suggestions.md) — advisory nudges from the weight trend
